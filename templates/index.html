@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Hello world</title>
+
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    
+        <!-- Bulma CSS -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css">
+            <!-- JS -->
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js"></script>
+
+
+        <style>
+            .wrap {
+                width: 900px;
+                margin: auto;
+            }
+
+        </style>
+        <script>
+            function logout()
+            {
+                $.removeCookie('mytoken');
+                window.location.href='/'
+            }
+
+            function login()
+            {
+                window.location.href='/login'
+            }
+        </script>
+    </head>
+
+    <body>
+        <div class="wrap">
+        <p>
+            <h1 class="title">JUNGLE EXPRESS!!</h1>
+        </p>
+
+      {% if nickname == "%" %}
+        <p>새로운 정글 캠퍼스를 디테일하게 알아가는 방법</p>
+        <button class="button is-primary" onclick="login()">로그인</button>
+        {% else %}
+        <p>안녕하세요 {{ nickname }} 님!!</p>
+        <button class="button is-primary" onclick="">문제 풀기</button>
+        <button class="button is-primary" onclick="">랭킹</button>
+        <button class="button is-primary" onclick="logout()">로그아웃</button>
+        {% endif %}
+    </div>
+
+    
+    </body>
+</html>
