@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <title>정글 익스프레스</title>
 
-        <!-- Bulma CSS 링크 -->
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css">
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
+        <!-- Bulma CSS -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css">
         <!-- JS -->
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js"></script>
@@ -91,7 +92,8 @@
             </div>
 
             <div class="problem" id="problem" style="display: none;">
-                <img src="https://via.placeholder.com/800x400" alt="문제 이미지" id="problemImage" reloadable="true"  />   
+                
+                <img src="{{ url_for('static', filename='pika.png') }}" alt="문제 이미지" id="problemImage" reloadable="true"  />   
                 <input class="input" type="text" placeholder="정답" id="answer" />
                 <button class="button is-primary " onclick="comparison()">제출</button>
                 <button class="button is-Warning" onclick="HideProblem()">뒤로</button>
@@ -101,8 +103,8 @@
         <script>
 
             Answers={
-                1:["307호", "image/image.png"],
-                2:["라운지","image/20250310_185308.jpg"]
+                1:["307호", "/static/image.png"],
+                2:["라운지","/static/20250310_185308.jpg"]
             }
 
             currentProblem=0;
@@ -120,8 +122,8 @@
                 else{
                     
                     console.log(Answers[currentProblem][1]);
-                    document.getElementById("problemImage").setAttribute('src',Answers[currentProblem][1]);
-    
+                    document.getElementById("problemImage").setAttribute('src', Answers[currentProblem][1]);
+
                     document.getElementById("problem").style.display ='Block';	
                     document.getElementById("container").style.display ='none';	
                     document.getElementById("numbers").style.display ='none';
