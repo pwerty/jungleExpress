@@ -157,20 +157,38 @@ def my_rank():
         return jsonify({'result': 'fail', 'msg': '로그인이 필요합니다.'})
     
 
+
 @app.route('/problems')
 def problem():
     receivedToken = request.cookies.get('mytoken')    
+    
     if receivedToken is not None:
         try:
             payload = jwt.decode(receivedToken, SECRET_KEY, algorithms=['HS256'])
             userinfo = db.user.find_one({"id": payload['id']})
-            return render_template('problems.html', idName=userinfo["id"])
+            return render_template('problems.html', idName=userinfo["id"], solvedProblems=userinfo["problemList"])
         except jwt.ExpiredSignatureError:
             return render_template('problems.html', idName="%")
         except jwt.exceptions.DecodeError:
             return render_template('problems.html', idName="%")
     else:
             return render_template('problems.html', idName="%")
-        
+    
+
+    
+@app.route('/api/problems', methods=['POST'])
+def solved():
+    id_receive = request.form['id_give']
+    number_receive = int(request.form['number_give'])
+
+    print(id_receive, number_receive)
+    user_info = db.user.find_one({"id": id_receive})
+
+    user_info["problemList"][number_receive] = True
+    
+    user_info["probSolvedCnt"] += 1
+    db.user.update_one({"id": id_receive}, {"$set": {"problemList": user_info["problemList"], "probSolvedCnt": user_info["probSolvedCnt"]}})
+    return jsonify({'result': 'success', 'msg':'success'})
+
 if __name__ == '__main__':
     app.run('0.0.0.0', port=5001, debug=True)

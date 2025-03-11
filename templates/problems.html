@@ -87,6 +87,7 @@
         </section>
         <section class="section" >
             <div class="container" id="container">
+                
                 {% if idName == "%" %}
                 <h1 class="title">현재 게스트로 사용중입니다.</h1>
                 <h2 class="subtitle">
@@ -98,7 +99,8 @@
                 {% endif %}
                 <h2 class="subtitle">
                     <span>파란색 번호는 해결한 문제, 검은색 번호는 해결하지 못한 문제입니다.
-                    <br>해결하지 못한 문제를 클릭하면 해당 문제로 이동합니다. </span>
+                        <br>해결하지 못한 문제를 클릭하면 해당 문제로 이동합니다. </span>
+                        
                 </h2>
             </div>
 
@@ -108,33 +110,33 @@
             <hr id="line">
 
             <div class="numbers" id="numbers">
-                <button class="button is-white" onclick="ShowProblem(1)">1</button>
-                <button class="button is-white" onclick="ShowProblem(2)">2</button>
-                <button class="button is-white ">3</button>
-                <button class="button is-white ">4</button>
-                <button class="button is-white ">5</button>
-                <button class="button is-white ">6</button>
-                <button class="button is-white ">7</button>
-                <button class="button is-white ">8</button>
-                <button class="button is-white ">9</button>
-                <button class="button is-white ">10</button>
-                <button class="button is-white ">11</button>
-                <button class="button is-white ">12</button>
-                <button class="button is-white ">13</button>
-                <button class="button is-white ">14</button>
-                <button class="button is-white ">15</button>
-                <button class="button is-white ">16</button>
-                <button class="button is-white ">17</button>
-                <button class="button is-white ">18</button>
-                <button class="button is-white ">19</button>
-                <button class="button is-white ">20</button>
+                <button class="button is-white" onclick="ShowProblem(0)">1</button>
+                <button class="button is-white" onclick="ShowProblem(1)">2</button>
+                <button class="button is-white " onclick="ShowProblem(2)">3</button>
+                <button class="button is-white " onclick="ShowProblem(3)">4</button>
+                <button class="button is-white " onclick="ShowProblem(4)">5</button>
+                <button class="button is-white " onclick="ShowProblem(5)">6</button>
+                <button class="button is-white " onclick="ShowProblem(6)">7</button>
+                <button class="button is-white " onclick="ShowProblem(7)">8</button>
+                <button class="button is-white " onclick="ShowProblem(8)">9</button>
+                <button class="button is-white " onclick="ShowProblem(9)">10</button>
+                <button class="button is-white " onclick="ShowProblem(10)">11</button>
+                <button class="button is-white " onclick="ShowProblem(11)">12</button>
+                <button class="button is-white " onclick="ShowProblem(12)">13</button>
+                <button class="button is-white " onclick="ShowProblem(13)">14</button>
+                <button class="button is-white " onclick="ShowProblem(14)">15</button>
+                <button class="button is-white " onclick="ShowProblem(15)">16</button>
+                <button class="button is-white " onclick="ShowProblem(16)">17</button>
+                <button class="button is-white " onclick="ShowProblem(17)">18</button>
+                <button class="button is-white " onclick="ShowProblem(18)">19</button>
+                <button class="button is-white " onclick="ShowProblem(19)">20</button>
             </div>
 
             <div class="problem" id="problem" style="display: none;">
                 
                 <img src="{{ url_for('static', filename='pika.png') }}" alt="문제 이미지" id="problemImage" reloadable="true"  />   
                 <input class="input" type="text" placeholder="정답" id="answer" />
-                <button class="button is-primary " onclick="comparison()">제출</button>
+                <button class="button is-primary " onclick="comparison('{{ idName }}')">제출</button>
                 <button class="button is-Warning" onclick="HideProblem()">뒤로</button>
             </div>
         </section>
@@ -142,11 +144,26 @@
         <script>
 
             Answers={
-                1:["307호", "/static/image.png"],
-                2:["라운지","/static/20250310_185308.jpg"]
+                0:["307호", "/static/image.png"],
+                1:["라운지","/static/20250310_185308.jpg"]
             }
 
+
+
             currentProblem=0;
+
+            window.onload = function buttonChange() {
+                let solvedProblems = JSON.parse('{{ solvedProblems | tojson | safe }}');  
+
+                for (let i = 0; i < 20; i++) {
+                    let button = document.querySelector(`button[onclick="ShowProblem(${i})"]`);
+                    if (solvedProblems[i]==true) {
+                        button.classList.replace("is-white", "is-link");
+                    }
+                }
+
+                console.log("Solved Problems:", solvedProblems);  // 콘솔 확인
+            };
             
 
             function ShowProblem(currentNumber){
@@ -182,11 +199,30 @@
 
             }
 
-            function comparison(){
+            function comparison(idName){
+                idName = idName.toString();
                 document.getElementById("answer").value;
                 if(document.getElementById("answer").value == Answers[currentProblem][0]){
                     alert("정답입니다.");
                     //db 업데이트
+                    
+                    $.ajax({
+                        type: "POST",
+                        url: "/api/problems",
+                        data: {id_give: idName, number_give: currentProblem},
+                        success: function(response) {
+                            if (response['result'] == "success") {
+                                console.log("ppap"); // 문제 해결 상태 저장 성공
+                            } else {
+                                console.log(response['msg']); // 오류 메시지 표시
+                            }
+                        },
+                        error: function() {
+                            alert("서버 요청 중 오류가 발생했습니다.");
+                        }
+                    });
+
+
                     // 버튼 색 변경
 
                     let button = document.querySelector(`button[onclick="ShowProblem(${currentProblem})"]`);
