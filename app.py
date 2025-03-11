@@ -106,13 +106,40 @@ def api_valid():
         return jsonify({'result': 'fail', 'msg': '로그인 시간이 만료되었습니다.'})
     except jwt.exceptions.DecodeError:
         return jsonify({'result': 'fail', 'msg': '로그인 정보가 존재하지 않습니다.'})
-    
 
-@app.route('/ranking')
+
+def get_ranking_data(page, per_page=10):
+    # 모든 사용자를 가져와서 메모리에서 정렬
+    all_users = list(db.user.find({}, {'_id': 0, 'pw': 0}))
+    
+    # problemList에서 True의 개수를 기준으로 정렬
+    all_users.sort(key=lambda x: x['problemList'].count(True), reverse=True)
+    
+    total_users = len(all_users)
+    total_pages = (total_users + per_page - 1) // per_page
+    
+    # 페이지에 해당하는 사용자들 추출
+    start_idx = (page - 1) * per_page
+    end_idx = start_idx + per_page
+    users = all_users[start_idx:end_idx]
+    
+    # 각 사용자의 실제 순위 추가 (1부터 시작)
+    for i, user in enumerate(users):
+        user['rank'] = start_idx + i + 1
+        user['solved_count'] = user['problemList'].count(True)
+    
+    return {
+        'users': users,
+        'total_pages': total_pages,
+        'current_page': page,
+        'total_users': total_users
+    }
+
+@app.route('/ranking', methods=['GET'])
 def ranking():
-    # user 컬렉션에서 모든 사용자의 정보를 가져옵니다
-    users = list(db.user.find({}, {'_id': 0, 'pw': 0}))  # 비밀번호는 제외
-    return render_template('ranking.html', users=users)
+    page = int(request.args.get('page', 1))
+    ranking_data = get_ranking_data(page)
+    return render_template('ranking.html', **ranking_data)
 
 if __name__ == '__main__':
     app.run('0.0.0.0', port=5001, debug=True)

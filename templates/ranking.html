@@ -10,13 +10,13 @@
     <div class="section">
         <div class="container">
             <h1 class="title">정글러 랭킹</h1>
-            <button class="button is-warning is-light" onclick="window.location.href='/'">뒤로 가기</button>
+            <button class="button is-warning is-light mb-5" onclick="window.location.href='/'">뒤로 가기</button>
             <div class="box has-text-centered">정글님 14/20등 입니다!</div>
             <h1 class="title is-1 has-text-centered">현재 랭킹은 222등 입니다!</h1>
 
             <div class="has-text-centered">
                 <button class="button is-primary is-light" style="margin-right: 10px">내 주위 랭킹</button>
-                <button class="button is-link is-light">전체 랭킹</button>
+                <button class="button is-link is-light" onclick="window.location.href='/ranking'">전체 랭킹</button>
             </div>
 
             <table class="table is-fullwidth">
@@ -30,17 +30,62 @@
                 <tbody>
                     {% for user in users %}
                     <tr>
-                        <td>{{ loop.index }}</td>
+                        <td>{{ user.rank }}</td>
                         <td>{{ user.nick }}</td>
-                        <td>{{ user.problemList.count(true) }}</td>
+                        <td>{{ user.solved_count }} / 20</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
+
+            <!-- pagination -->     
+            <nav class="pagination is-rounded" role="navigation" aria-label="pagination">
+                {% if current_page > 1 %}
+                    <a href="/ranking?page={{ current_page - 1 }}" class="pagination-previous">Previous</a>
+                {% else %}
+                    <a class="pagination-previous" disabled>Previous</a>
+                {% endif %}
+
+                {% if current_page < total_pages %}
+                    <a href="/ranking?page={{ current_page + 1 }}" class="pagination-next">Next page</a>
+                {% else %}
+                    <a class="pagination-next" disabled>Next page</a>
+                {% endif %}
+
+                <ul class="pagination-list">
+                    {% if current_page > 2 %}
+                        <li><a href="/ranking?page=1" class="pagination-link" aria-label="Goto page 1">1</a></li>
+                        {% if current_page > 3 %}
+                            <li><span class="pagination-ellipsis">&hellip;</span></li>
+                        {% endif %}
+                    {% endif %}
+
+                    {% if current_page > 1 %}
+                        <li><a href="/ranking?page={{ current_page - 1 }}" class="pagination-link" aria-label="Goto page {{ current_page - 1 }}">{{ current_page - 1 }}</a></li>
+                    {% endif %}
+
+                    <li><a class="pagination-link is-current" aria-label="Page {{ current_page }}" aria-current="page">{{ current_page }}</a></li>
+
+                    {% if current_page < total_pages %}
+                        <li><a href="/ranking?page={{ current_page + 1 }}" class="pagination-link" aria-label="Goto page {{ current_page + 1 }}">{{ current_page + 1 }}</a></li>
+                    {% endif %}
+
+                    {% if current_page < total_pages - 1 %}
+                        {% if current_page < total_pages - 2 %}
+                            <li><span class="pagination-ellipsis">&hellip;</span></li>
+                        {% endif %}
+                        <li><a href="/ranking?page={{ total_pages }}" class="pagination-link" aria-label="Goto page {{ total_pages }}">{{ total_pages }}</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+
             <div class="has-text-centered">
                 <button class="button is-primary" onclick="window.location.href='/'">홈으로</button>
             </div>
         </div>
     </div>
 </body>
+<script>
+    
+</script>
 </html> 
