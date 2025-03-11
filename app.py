@@ -18,19 +18,24 @@ SECRET_KEY = 'JUNGLE'
 
 @app.route('/')
 def home():
-    receivedToken = request.cookies.get('mytoken')    
+    # 로그인 정보를 알아보기위해 토큰을 얻어오기를 시도합니다.
+    receivedToken = request.cookies.get('mytoken')
+    # 얘가 비어있으면 100% 로그아웃 상태입니다.
+    # 비어있지 않으면 올바른 로그인 상태인지 확인해야합니다.
 
-    try:
-        payload = jwt.decode(receivedToken, SECRET_KEY, algorithms=['HS256'])
-        user_info = db.user.find_one({"id": payload['id']})
-        return render_template('index.html', nickname=user_info["nick"])
-    except jwt.ExpiredSignatureError:
-        return render_template('index.html', nickname="%")
-        #return redirect(url_for("index"), msg="a")
-       #return redirect(url_for("login", msg="로그인 시간 만료됨"))
-    except jwt.exceptions.DecodeError:
-       # return redirect(url_for("index"), msg="b")
-       return redirect(url_for("login", msg="로그인 정보 없음"))
+    if receivedToken is not None:
+        try:
+            payload = jwt.decode(receivedToken, SECRET_KEY, algorithms=['HS256'])
+            user_info = db.user.find_one({"id": payload['id']})
+            return render_template('index.html', idName=user_info["id"])
+        except jwt.ExpiredSignatureError:
+            return redirect(url_for('login', msg="로그인 시간이 만료되었습니다. 다시 로그인해야합니다."))
+        except jwt.exceptions.DecodeError:
+            return redirect(url_for("login", msg="로그인 정보가 없습니다."))
+    else:
+        # 여긴 어쨌든 로그인이 안된 영역이니 %로 로그아웃 상태임을 보내기
+        return render_template('index.html', idName="%")
+    
 
 @app.route('/login')
 def login():
@@ -47,12 +52,15 @@ def register():
 def api_register():
     id_receive = request.form['id_give']
     pw_receive = request.form['pw_give']
-    nickname_receive = request.form['nickname_give']
-  
-    pw_hash = hashlib.sha256(pw_receive.encode('utf-8')).hexdigest()
-    db.user.insert_one({'id': id_receive, 'pw': pw_hash, 'nick': nickname_receive, "problemList": [False] * 20})
 
-    return jsonify({'result': 'success'})
+    isExistUser = db.user.find_one({'id': id_receive})
+
+    if isExistUser is not None:
+        return jsonify({'result': 'fail', 'msg': '이미 가입 되어 있는 아이디입니다.'})
+    else:
+        pw_hash = hashlib.sha256(pw_receive.encode('utf-8')).hexdigest()
+        db.user.insert_one({'id': id_receive, 'pw': pw_hash, "problemList": [False] * 20, "probSolvedCnt": 0})
+        return jsonify({'result': 'success'})
 
 
 # [로그인 API]
@@ -76,7 +84,7 @@ def api_login():
         # exp에는 만료시간을 넣어줍니다(5초). 만료시간이 지나면, 시크릿키로 토큰을 풀 때 만료되었다고 에러가 납니다.
         payload = {
             'id': id_receive,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=600)
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=100)
         }
         token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
 
@@ -85,28 +93,7 @@ def api_login():
     # 찾지 못하면
     else:
         return jsonify({'result': 'fail', 'msg': '아이디/비밀번호가 일치하지 않습니다.'})
-
-
-# 로그인된 유저만 call 할 수 있는 API
-# 유효한 토큰을 줘야 올바른 결과를 얻어갈 수 있습니다.
-@app.route('/api/nick', methods=['GET'])
-def api_valid():
-    receivedToken = request.cookies.get('mytoken')
-
-    try:
-        # token을 시크릿키로 디코딩합니다.
-        payload = jwt.decode(receivedToken, SECRET_KEY, algorithms=['HS256'])
-
-        # payload 안에 id가 들어있습니다. 이 id로 유저정보를 찾습니다.
-        # 여기에선 그 예로 닉네임을 보내주겠습니다.
-        userinfo = db.user.find_one({'id': payload['id']}, {'_id': 0})
-        return jsonify({'result': 'success', 'nickname': userinfo['nick']})
-    except jwt.ExpiredSignatureError:
-        # 위를 실행했는데 만료시간이 지났으면 에러가 납니다.
-        return jsonify({'result': 'fail', 'msg': '로그인 시간이 만료되었습니다.'})
-    except jwt.exceptions.DecodeError:
-        return jsonify({'result': 'fail', 'msg': '로그인 정보가 존재하지 않습니다.'})
-
+    
 
 def get_ranking_data(page, per_page=10):
     # 모든 사용자를 가져와서 메모리에서 정렬
@@ -165,6 +152,46 @@ def my_rank():
         
     except (jwt.ExpiredSignatureError, jwt.exceptions.DecodeError):
         return jsonify({'result': 'fail', 'msg': '로그인이 필요합니다.'})
+    
+    # # 로그인 정보를 알아보기위해 토큰을 얻어오기를 시도합니다.
+    # receivedToken = request.cookies.get('mytoken')
+    # # 얘가 비어있으면 100% 로그아웃 상태입니다.
+    # # 비어있지 않으면 올바른 로그인 상태인지 확인해야합니다.
+
+    # # user 컬렉션에서 모든 사용자의 정보를 가져옵니다
+    # users = list(db.user.find({}, {'_id': 0, 'pw': 0}))  # 비밀번호는 제외
+    
+    # if receivedToken is not None:
+    #     try:
+    #     # token을 시크릿키로 디코딩합니다.
+    #         payload = jwt.decode(receivedToken, SECRET_KEY, algorithms=['HS256'])
+    #         userinfo = db.user.find_one({'id': payload['id']}, {'_id': 0})
+    #     # 여기 처음부터 find_one 의 돌아오는 값이 id면 된거 아닐까..
+    #         return render_template('ranking.html', users=users, idName="Logined User Name")
+    #         #return render_template('ranking.html', idName=userinfo["id"])
+    #     except jwt.ExpiredSignatureError:
+    #         return jsonify({'result': 'fail', 'msg': '로그인 시간이 만료되었습니다.'})
+    #     except jwt.exceptions.DecodeError:
+    #         return jsonify({'result': 'fail', 'msg': '로그인 정보가 존재하지 않습니다.'})
+    # else: 
+    #     return render_template('ranking.html', users=users, idName="%")
+    
+
+@app.route('/problems')
+def problem():
+    receivedToken = request.cookies.get('mytoken')    
+
+    try:
+        payload = jwt.decode(receivedToken, SECRET_KEY, algorithms=['HS256'])
+        userinfo = db.user.find_one({"id": payload['id']})
+        return render_template('problems.html', idName=userinfo["id"])
+    except jwt.ExpiredSignatureError:
+        return render_template('problems.html', idName="%")
+        #return redirect(url_for("problems"), msg="a")
+       #return redirect(url_for("login", msg="로그인 시간 만료됨"))
+    except jwt.exceptions.DecodeError:
+       # return redirect(url_for("problems"), msg="b")
+       return redirect(url_for("login", msg="로그인 정보 없음"))
 
 if __name__ == '__main__':
     app.run('0.0.0.0', port=5001, debug=True)
