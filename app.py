@@ -9,9 +9,9 @@ import datetime
 import hashlib
 
 ca = certifi.where()
-client = MongoClient('localhost', 27017)
+client = MongoClient('mongodb://localhost:27017/')
 # 실제 배포 때는 일부 수정이 필요
-db = client.realjungle
+db = client['realjungle']
 
 SECRET_KEY = 'JUNGLE'
 
@@ -107,6 +107,12 @@ def api_valid():
     except jwt.exceptions.DecodeError:
         return jsonify({'result': 'fail', 'msg': '로그인 정보가 존재하지 않습니다.'})
     
+
+@app.route('/ranking')
+def ranking():
+    # user 컬렉션에서 모든 사용자의 정보를 가져옵니다
+    users = list(db.user.find({}, {'_id': 0, 'pw': 0}))  # 비밀번호는 제외
+    return render_template('ranking.html', users=users)
 
 if __name__ == '__main__':
     app.run('0.0.0.0', port=5001, debug=True)
