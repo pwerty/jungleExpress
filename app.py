@@ -193,10 +193,7 @@ def problem():
     except jwt.ExpiredSignatureError:
         return render_template('problems.html', idName="%", solvedProblems=[])
     except jwt.exceptions.DecodeError:
-        return render_template('problems.html', idName="%", solvedProblems=[])
-    else:
-        return render_template('problems.html', idName="%", solvedProblems=[])
-    
+        return render_template('problems.html', idName="%", solvedProblems=[])   
 
     
 @app.route('/api/problems', methods=['POST'])
