@@ -23,9 +23,9 @@ def home():
     try:
         payload = jwt.decode(receivedToken, SECRET_KEY, algorithms=['HS256'])
         user_info = db.user.find_one({"id": payload['id']})
-        return render_template('index.html', nickname=user_info["nick"])
+        return render_template('index.html', idName=user_info["id"])
     except jwt.ExpiredSignatureError:
-        return render_template('index.html', nickname="%")
+        return render_template('index.html', idName="%")
         #return redirect(url_for("index"), msg="a")
        #return redirect(url_for("login", msg="로그인 시간 만료됨"))
     except jwt.exceptions.DecodeError:
@@ -47,12 +47,15 @@ def register():
 def api_register():
     id_receive = request.form['id_give']
     pw_receive = request.form['pw_give']
-    nickname_receive = request.form['nickname_give']
-  
-    pw_hash = hashlib.sha256(pw_receive.encode('utf-8')).hexdigest()
-    db.user.insert_one({'id': id_receive, 'pw': pw_hash, 'nick': nickname_receive, "problemList": [False] * 20})
 
-    return jsonify({'result': 'success'})
+    isExistUser = db.user.find_one({'id': id_receive})
+
+    if isExistUser is not None:
+        return jsonify({'result': 'fail', 'msg': '이미 가입 되어 있는 아이디입니다.'})
+    else:
+        pw_hash = hashlib.sha256(pw_receive.encode('utf-8')).hexdigest()
+        db.user.insert_one({'id': id_receive, 'pw': pw_hash, "problemList": [False] * 20, "probSolvedCnt": 0})
+        return jsonify({'result': 'success'})
 
 
 # [로그인 API]

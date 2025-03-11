@@ -31,10 +31,12 @@
             {
                 window.location.href='/login'
             }
+
             function ranking()
             {
                 window.location.href='/ranking'
             }
+
         </script>
     </head>
 
@@ -44,11 +46,11 @@
             <h1 class="title">JUNGLE EXPRESS!!</h1>
         </p>
 
-      {% if nickname == "%" %}
+      {% if idName == "%" %}
         <p>새로운 정글 캠퍼스를 디테일하게 알아가는 방법</p>
         <button class="button is-primary" onclick="login()">로그인</button>
         {% else %}
-        <p>안녕하세요 {{ nickname }} 님!!</p>
+        <p>안녕하세요 {{ idName }} 님!!</p>
         <button class="button is-primary" onclick="">문제 풀기</button>
         <button class="button is-primary" onclick="ranking()">랭킹</button>
         <button class="button is-primary" onclick="logout()">로그아웃</button>

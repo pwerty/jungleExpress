@@ -21,9 +21,8 @@
             function register() {
                 const userID = $('#userid').val().trim();
                 const userPW = $('#userpw').val().trim();
-                const userNICK = $('#usernick').val().trim();
 
-                if (!userID || !userPW || !userNICK)
+                if (!userID || !userPW)
                 {
                     alert('입력되지 않은 필드가 있습니다');
                     return;
@@ -35,7 +34,6 @@
                     data: {
                         id_give: $('#userid').val(),
                         pw_give: $('#userpw').val(),
-                        nickname_give: $('#usernick').val()
                     },
                     success: function (response) {
                         if (response['result'] == 'success') {
@@ -79,19 +77,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="field is-horizontal">
-                    <div class="field-label is-normal">
-                        <label class="label" for="usernick">NICKNAME</label>
-                    </div>
-                    <div class="field-body">
-                        <div class="field">
-                            <div class="control">
-                                <input type="text" class="input" id="usernick" placeholder="My Nickname">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <button class="button is-primary" onclick="register()">회원가입</button>
+                <button class="button is-primary" onclick="register()">가입 요청</button>
             </div>
         </div>
     </body>
