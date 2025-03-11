@@ -31,6 +31,11 @@
             {
                 window.location.href='/login'
             }
+
+            function GoProblem()
+            {
+                window.location.href='/Problems'
+            }
         </script>
     </head>
 
@@ -45,7 +50,7 @@
         <button class="button is-primary" onclick="login()">로그인</button>
         {% else %}
         <p>안녕하세요 {{ nickname }} 님!!</p>
-        <button class="button is-primary" onclick="">문제 풀기</button>
+        <button class="button is-primary" onclick="GoProblem()">문제 풀기</button>
         <button class="button is-primary" onclick="">랭킹</button>
         <button class="button is-primary" onclick="logout()">로그아웃</button>
         {% endif %}
