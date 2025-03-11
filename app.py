@@ -42,12 +42,36 @@ def home():
 
 @app.route('/login')
 def login():
-    msg = request.args.get("msg")
-    return render_template('login.html', msg=msg)
+    receivedToken = request.cookies.get('mytoken')
+    
+    if receivedToken is None:
+        return render_template('login.html')
+    else:
+        try:
+            payload = jwt.decode(receivedToken, SECRET_KEY, algorithms=['HS256'])
+            user_info = db.user.find_one({"id": payload['id']})
+            return render_template('index.html', idName=user_info["id"])
+        except jwt.ExpiredSignatureError:
+            return render_template('login.html')
+        except jwt.exceptions.DecodeError:
+            return render_template('login.html')
 
 @app.route('/register')
 def register():
-    return render_template('register.html')
+    receivedToken = request.cookies.get('mytoken')
+
+    if receivedToken is not None:
+        try:
+            payload = jwt.decode(receivedToken, SECRET_KEY, algorithms=['HS256'])
+            user_info = db.user.find_one({"id": payload['id']})
+            return render_template('index.html', idName=user_info["id"])
+        except jwt.ExpiredSignatureError:
+            return render_template('register.html')
+        except jwt.exceptions.DecodeError:
+            return render_template('register.html')
+    else:
+        return render_template('register.html')
+        
 
 # [회원가입 API]
 # 저장하기 전에, pw를 sha256 방법(=단방향 암호화. 풀어볼 수 없음)으로 암호화해서 저장합니다.
