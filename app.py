@@ -29,9 +29,12 @@ def home():
             user_info = db.user.find_one({"id": payload['id']})
             return render_template('index.html', idName=user_info["id"])
         except jwt.ExpiredSignatureError:
-            return redirect(url_for('login', msg="로그인 시간이 만료되었습니다. 다시 로그인해야합니다."))
+            return render_template('index.html', idName="%")
+           # return redirect(url_for('login', msg="로그인 시간이 만료되었습니다. 다시 로그인해야합니다."))
         except jwt.exceptions.DecodeError:
-            return redirect(url_for("login", msg="로그인 정보가 없습니다."))
+            return render_template('index.html', idName="%")
+
+          #  return redirect(url_for("login", msg="로그인 정보가 없습니다."))
     else:
         # 여긴 어쨌든 로그인이 안된 영역이니 %로 로그아웃 상태임을 보내기
         return render_template('index.html', idName="%")
