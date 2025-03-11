@@ -3,11 +3,17 @@
     <head>
 
         <!-- Webpage Title -->
-        <title>Hello, world!</title>
+        <title>Jungle Express : Login</title>
 
         <!-- Required meta tags -->
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- 폰트 -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
+
 
         <!-- Bulma CSS -->
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css">
@@ -15,7 +21,50 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js"></script>
 
+        <style>
 
+            body{
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                height: 100%;
+                background-color: black; /* 배경색을 검정으로 설정 */
+                overflow-x: hidden; /* 가로 스크롤 방지 */
+            }
+
+            body,title,p,span,button,label {
+                font-family: "Do Hyeon", sans-serif;
+                font-weight: 400;
+                font-style: normal;
+            }
+
+
+            .section {
+                height: 100vh; /* 전체 화면 사용 */
+                width: 100vh;
+                max-width: 100vw;
+                margin: auto;
+            }
+
+            .wrap {
+                display: flex;
+                flex-direction: column; /* 세로 정렬 */
+                align-items: center; /* 가로 중앙 정렬 */
+                justify-content: center; /* 필요하면 세로 중앙 정렬 */
+            }
+
+            .subtitle {
+                color: white;
+                text-align: center; /* 텍스트 가운데 정렬 */
+                font-size: 24px; /* 원하는 크기로 조정 */
+                font-weight: bold;
+            }
+
+            .button{
+                margin-bottom: 10px;
+            }
+
+        </style>
         <script>
             // ['쿠키'라는 개념에 대해 알아봅시다]
             // 로그인을 구현하면, 반드시 쿠키라는 개념을 사용합니다.
@@ -23,10 +72,19 @@
             // 쿠키가 있기 때문에, 한번 로그인하면 네이버에서 다시 로그인할 필요가 없는 것입니다.
             // 브라우저를 닫으면 자동 삭제되게 하거나, 일정 시간이 지나면 삭제되게 할 수 있습니다.
             function login() {
-                $.ajax({
+                let inputID = $('#userid').val();
+                let inputPW = $('#userpw').val();
+
+                if(!inputID || !inputPW)
+                {
+                    alert("입력란 두 칸이 모두 채워지지 않았습니다.")
+                }
+                else
+                {
+                    $.ajax({
                     type: "POST",
                     url: "/api/login",
-                    data: {id_give: $('#userid').val(), pw_give: $('#userpw').val()},
+                    data: {id_give: inputID, pw_give: inputPW},
                     success: function (response) {
                         if (response['result'] == 'success') {
                             // 로그인이 정상적으로 되면, 토큰을 받아옵니다.
@@ -39,6 +97,8 @@
                         }
                     }
                 })
+                }
+
             }
 
             function register() {
@@ -51,29 +111,30 @@
     </head>
     <body>
         <div class="section has-text-centered">
-            <h1 class="title">로그인 페이지</h1>
+            <img src="{{ url_for('static', filename='JELogo.png') }}" alt="로고 이미지" id="LogoImage" reloadable="true"  />   
+            <h1 class="title" style="color:white">로그인 페이지</h1>
             <div class="container" style="width:60%">
                 <div class="field is-horizontal">
                     <div class="field-label is-normal">
-                        <label class="label" for="userid">ID</label>
+                        <label class="label" for="userid" style="color:white">ID</label>
                     </div>
                     <div class="field-body">
                         <div class="field">
                             <div class="control">
                                 <input type="text" class="input" id="userid" aria-describedby="emailHelp"
-                                       placeholder="My ID">
+                                       placeholder="">
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="field is-horizontal">
                     <div class="field-label is-normal">
-                        <label class="label" for="userpw">PW</label>
+                        <label class="label" for="userpw" style="color:white">PW</label>
                     </div>
                     <div class="field-body">
                         <div class="field">
                             <div class="control">
-                                <input type="password" class="input" id="userpw" placeholder="My Password">
+                                <input type="password" class="input" id="userpw" placeholder="">
                             </div>
                         </div>
                     </div>
