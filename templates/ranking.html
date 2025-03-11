@@ -5,12 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ranking</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css">
+
+    <script>
+        function login()
+            {
+                window.location.href='/login'
+            }
+    </script>
 </head>
 <body>
+
     <div class="section">
         <div class="container">
             <h1 class="title">정글러 랭킹</h1>
             <button class="button is-warning is-light" onclick="window.location.href='/'">뒤로 가기</button>
+            {% if idName == "%" %}
+            <a href="javascript:login()">로그인하고 본인의 정글 탐험도를 다른 구성원들과 경쟁하세요.</a>
+        {% else %}
+            <a>로그인이 완료되어있는 상태입니다.</a>
+        {% endif %}
+
             <div class="box has-text-centered">정글님 14/20등 입니다!</div>
             <h1 class="title is-1 has-text-centered">현재 랭킹은 222등 입니다!</h1>
 
