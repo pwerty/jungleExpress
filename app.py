@@ -76,7 +76,7 @@ def api_login():
         # exp에는 만료시간을 넣어줍니다(5초). 만료시간이 지나면, 시크릿키로 토큰을 풀 때 만료되었다고 에러가 납니다.
         payload = {
             'id': id_receive,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=5)
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=600)
         }
         token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
 
@@ -140,6 +140,31 @@ def ranking():
     page = int(request.args.get('page', 1))
     ranking_data = get_ranking_data(page)
     return render_template('ranking.html', **ranking_data)
+
+@app.route('/my_rank', methods=['GET'])
+def my_rank():
+    try:
+        receivedToken = request.cookies.get('mytoken')
+        payload = jwt.decode(receivedToken, SECRET_KEY, algorithms=['HS256'])
+        
+        # 모든 사용자를 가져와서 문제 해결 수로 정렬
+        all_users = list(db.user.find({}, {'_id': 0, 'pw': 0}))
+        all_users.sort(key=lambda x: x['problemList'].count(True), reverse=True)
+        
+        # 현재 사용자의 순위 찾기
+        current_user_id = payload['id']
+        my_rank = next(i + 1 for i, user in enumerate(all_users) if user['id'] == current_user_id)
+        solved_count = all_users[my_rank - 1]['problemList'].count(True)
+        
+        return jsonify({
+            'result': 'success', 
+            'rank': my_rank,
+            'solved_count': solved_count,
+            'nickname': payload['id']
+        })
+        
+    except (jwt.ExpiredSignatureError, jwt.exceptions.DecodeError):
+        return jsonify({'result': 'fail', 'msg': '로그인이 필요합니다.'})
 
 if __name__ == '__main__':
     app.run('0.0.0.0', port=5001, debug=True)

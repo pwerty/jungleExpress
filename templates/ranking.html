@@ -11,8 +11,10 @@
         <div class="container">
             <h1 class="title">정글러 랭킹</h1>
             <button class="button is-warning is-light mb-5" onclick="window.location.href='/'">뒤로 가기</button>
-            <div class="box has-text-centered">정글님 14/20등 입니다!</div>
-            <h1 class="title is-1 has-text-centered">현재 랭킹은 222등 입니다!</h1>
+            <div class="has-text-centered mb-5 subtitle is-4" id="myRank">
+                <div class="box has-text-centered" id="myRankText"></div>
+                <h1 class="title is-1 has-text-centered" id="currentRank"></h1>
+            </div>
 
             <div class="has-text-centered">
                 <button class="button is-primary is-light" style="margin-right: 10px">내 주위 랭킹</button>
@@ -86,6 +88,21 @@
     </div>
 </body>
 <script>
-    
+    function getMyRank() {
+        fetch('/my_rank')
+            .then(response => response.json())
+            .then(data => {
+                if (data.result === 'success') {
+                    // box 업데이트
+                    document.getElementById('myRankText').textContent = 
+                        `${data.nickname}님 ${data.solved_count}/20문제 해결하셨습니다!`;
+                    
+                    // 랭킹 텍스트 업데이트
+                    document.getElementById('currentRank').textContent = 
+                        `현재 랭킹은 ${data.rank}등 입니다!`;
+                }
+            });
+    }
+    getMyRank();
 </script>
 </html> 
