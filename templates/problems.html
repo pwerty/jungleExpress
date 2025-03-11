@@ -153,16 +153,24 @@
             currentProblem=0;
 
             window.onload = function buttonChange() {
-                let solvedProblems = JSON.parse('{{ solvedProblems | tojson | safe }}');  
+                let id = JSON.parse('{{ idName | tojson | safe }}');
 
-                for (let i = 0; i < 20; i++) {
-                    let button = document.querySelector(`button[onclick="ShowProblem(${i})"]`);
-                    if (solvedProblems[i]==true) {
-                        button.classList.replace("is-white", "is-link");
-                    }
+                if(id=="%"){
+                    alert("게스트로 사용중입니다.");
                 }
-
-                console.log("Solved Problems:", solvedProblems);  // 콘솔 확인
+                else{
+                    
+                    let solvedProblems = JSON.parse('{{ solvedProblems | tojson | safe }}');  
+    
+                    for (let i = 0; i < 20; i++) {
+                        let button = document.querySelector(`button[onclick="ShowProblem(${i})"]`);
+                        if (solvedProblems[i]==true) {
+                            button.classList.replace("is-white", "is-link");
+                        }
+                    }
+    
+                    console.log("Solved Problems:", solvedProblems);  // 콘솔 확인
+                }
             };
             
 
@@ -205,23 +213,24 @@
                 if(document.getElementById("answer").value == Answers[currentProblem][0]){
                     alert("정답입니다.");
                     //db 업데이트
-                    
-                    $.ajax({
-                        type: "POST",
-                        url: "/api/problems",
-                        data: {id_give: idName, number_give: currentProblem},
-                        success: function(response) {
-                            if (response['result'] == "success") {
-                                console.log("ppap"); // 문제 해결 상태 저장 성공
-                            } else {
-                                console.log(response['msg']); // 오류 메시지 표시
+                    if(idName!="%"){
+                        $.ajax({
+                            type: "POST",
+                            url: "/api/problems",
+                            data: {id_give: idName, number_give: currentProblem},
+                            success: function(response) {
+                                if (response['result'] == "success") {
+                                    console.log("ppap"); // 문제 해결 상태 저장 성공
+                                } else {
+                                    console.log(response['msg']); // 오류 메시지 표시
+                                }
+                            },
+                            error: function() {
+                                alert("서버 요청 중 오류가 발생했습니다.");
                             }
-                        },
-                        error: function() {
-                            alert("서버 요청 중 오류가 발생했습니다.");
-                        }
-                    });
+                        });
 
+                    }
 
                     // 버튼 색 변경
 

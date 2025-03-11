@@ -162,17 +162,16 @@ def my_rank():
 def problem():
     receivedToken = request.cookies.get('mytoken')    
     
-    if receivedToken is not None:
-        try:
-            payload = jwt.decode(receivedToken, SECRET_KEY, algorithms=['HS256'])
-            userinfo = db.user.find_one({"id": payload['id']})
-            return render_template('problems.html', idName=userinfo["id"], solvedProblems=userinfo["problemList"])
-        except jwt.ExpiredSignatureError:
-            return render_template('problems.html', idName="%")
-        except jwt.exceptions.DecodeError:
-            return render_template('problems.html', idName="%")
+    try:
+        payload = jwt.decode(receivedToken, SECRET_KEY, algorithms=['HS256'])
+        userinfo = db.user.find_one({"id": payload['id']})
+        return render_template('problems.html', idName=userinfo["id"], solvedProblems=userinfo["problemList"])
+    except jwt.ExpiredSignatureError:
+        return render_template('problems.html', idName="%", solvedProblems=[])
+    except jwt.exceptions.DecodeError:
+        return render_template('problems.html', idName="%", solvedProblems=[])
     else:
-            return render_template('problems.html', idName="%")
+        return render_template('problems.html', idName="%", solvedProblems=[])
     
 
     
