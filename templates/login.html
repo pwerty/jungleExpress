@@ -78,9 +78,9 @@
                 if(!inputID || !inputPW)
                 {
                     alert("입력란 두 칸이 모두 채워지지 않았습니다.")
+                    return;
                 }
-                else
-                {
+
                     $.ajax({
                     type: "POST",
                     url: "/api/login",
@@ -97,7 +97,6 @@
                         }
                     }
                 })
-                }
 
             }
 

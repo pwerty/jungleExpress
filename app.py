@@ -156,45 +156,21 @@ def my_rank():
     except (jwt.ExpiredSignatureError, jwt.exceptions.DecodeError):
         return jsonify({'result': 'fail', 'msg': '로그인이 필요합니다.'})
     
-    # # 로그인 정보를 알아보기위해 토큰을 얻어오기를 시도합니다.
-    # receivedToken = request.cookies.get('mytoken')
-    # # 얘가 비어있으면 100% 로그아웃 상태입니다.
-    # # 비어있지 않으면 올바른 로그인 상태인지 확인해야합니다.
-
-    # # user 컬렉션에서 모든 사용자의 정보를 가져옵니다
-    # users = list(db.user.find({}, {'_id': 0, 'pw': 0}))  # 비밀번호는 제외
-    
-    # if receivedToken is not None:
-    #     try:
-    #     # token을 시크릿키로 디코딩합니다.
-    #         payload = jwt.decode(receivedToken, SECRET_KEY, algorithms=['HS256'])
-    #         userinfo = db.user.find_one({'id': payload['id']}, {'_id': 0})
-    #     # 여기 처음부터 find_one 의 돌아오는 값이 id면 된거 아닐까..
-    #         return render_template('ranking.html', users=users, idName="Logined User Name")
-    #         #return render_template('ranking.html', idName=userinfo["id"])
-    #     except jwt.ExpiredSignatureError:
-    #         return jsonify({'result': 'fail', 'msg': '로그인 시간이 만료되었습니다.'})
-    #     except jwt.exceptions.DecodeError:
-    #         return jsonify({'result': 'fail', 'msg': '로그인 정보가 존재하지 않습니다.'})
-    # else: 
-    #     return render_template('ranking.html', users=users, idName="%")
-    
 
 @app.route('/problems')
 def problem():
     receivedToken = request.cookies.get('mytoken')    
-
-    try:
-        payload = jwt.decode(receivedToken, SECRET_KEY, algorithms=['HS256'])
-        userinfo = db.user.find_one({"id": payload['id']})
-        return render_template('problems.html', idName=userinfo["id"])
-    except jwt.ExpiredSignatureError:
-        return render_template('problems.html', idName="%")
-        #return redirect(url_for("problems"), msg="a")
-       #return redirect(url_for("login", msg="로그인 시간 만료됨"))
-    except jwt.exceptions.DecodeError:
-       # return redirect(url_for("problems"), msg="b")
-       return redirect(url_for("login", msg="로그인 정보 없음"))
-
+    if receivedToken is not None:
+        try:
+            payload = jwt.decode(receivedToken, SECRET_KEY, algorithms=['HS256'])
+            userinfo = db.user.find_one({"id": payload['id']})
+            return render_template('problems.html', idName=userinfo["id"])
+        except jwt.ExpiredSignatureError:
+            return render_template('problems.html', idName="%")
+        except jwt.exceptions.DecodeError:
+            return render_template('problems.html', idName="%")
+    else:
+            return render_template('problems.html', idName="%")
+        
 if __name__ == '__main__':
     app.run('0.0.0.0', port=5001, debug=True)
