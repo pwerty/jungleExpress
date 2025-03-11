@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>정글 익스프레스</title>
+
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- Bulma CSS -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css">
+        <!-- JS -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js"></script>
+
+        <style>
+            .section {
+                width: 800px;
+                max-width: 100vw;
+                margin: auto;
+            }
+
+            .numbers {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .numbers::after {
+                content: "";
+                flex-basis: 100%;
+                height: 0;
+            }
+
+            .button {
+                flex: 1 1 calc(20% - 10px);
+                margin: 5px;
+                text-align: center;
+            }
+
+
+            
+        </style>
+
+
+    </head>
+    <body>
+        <section class="hero is-primary is-bold is-medium">
+            <div class="hero-body">
+                <div class="container">
+                    <h1 class="title">
+                        정글 탐험하기
+                    </h1>
+                    <h2 class="subtitle">
+                        새로운 정글 캠퍼스를 디테일하게 알아가는 방법
+                    </h2>
+                </div>
+            </div>
+        </section>
+        <section class="section" >
+            <div class="container" id="container">
+                {% if idName == "%" %}
+                <h1 class="title">안녕하세요 guest 님!!</h1>
+                {% else %}
+                <h1 class="title">안녕하세요 {{ idName }} 님!!</h1>
+                {% endif %}
+                <h2 class="subtitle">
+                    파란색 번호는 해결한 문제, 검은색 번호는 해결하지 못한 문제입니다.
+                    <br>해결하지 못한 문제를 클릭하면 해당 문제로 이동합니다. 
+                </h2>
+            </div>
+
+            <br>
+            <button class="button is-primary" onclick="GoMain()">메인 화면으로 </button>
+
+            <hr id="line">
+
+            <div class="numbers" id="numbers">
+                <button class="button is-black" onclick="ShowProblem(1)">1</button>
+                <button class="button is-black" onclick="ShowProblem(2)">2</button>
+                <button class="button is-black ">3</button>
+                <button class="button is-black ">4</button>
+                <button class="button is-black ">5</button>
+                <button class="button is-black ">6</button>
+                <button class="button is-black ">7</button>
+                <button class="button is-black ">8</button>
+                <button class="button is-black ">9</button>
+                <button class="button is-black ">10</button>
+                <button class="button is-black ">11</button>
+                <button class="button is-black ">12</button>
+                <button class="button is-black ">13</button>
+                <button class="button is-black ">14</button>
+                <button class="button is-black ">15</button>
+                <button class="button is-black ">16</button>
+                <button class="button is-black ">17</button>
+                <button class="button is-black ">18</button>
+                <button class="button is-black ">19</button>
+                <button class="button is-black ">20</button>
+            </div>
+
+            <div class="problem" id="problem" style="display: none;">
+                
+                <img src="{{ url_for('static', filename='pika.png') }}" alt="문제 이미지" id="problemImage" reloadable="true"  />   
+                <input class="input" type="text" placeholder="정답" id="answer" />
+                <button class="button is-primary " onclick="comparison()">제출</button>
+                <button class="button is-Warning" onclick="HideProblem()">뒤로</button>
+            </div>
+        </section>
+        
+        <script>
+
+            Answers={
+                1:["307호", "/static/image.png"],
+                2:["라운지","/static/20250310_185308.jpg"]
+            }
+
+            currentProblem=0;
+            
+
+            function ShowProblem(currentNumber){
+
+                currentProblem=currentNumber;
+                let button = document.querySelector(`button[onclick="ShowProblem(${currentProblem})"]`);
+
+                if(button&&button.classList.contains("is-link")){
+                    alert("이미 풀었습니다.");
+                    return;
+                }
+                else{
+                    
+                    console.log(Answers[currentProblem][1]);
+                    document.getElementById("problemImage").setAttribute('src', Answers[currentProblem][1]);
+
+                    document.getElementById("problem").style.display ='Block';	
+                    document.getElementById("container").style.display ='none';	
+                    document.getElementById("numbers").style.display ='none';
+                    document.getElementById("line").style.display ='none';	
+                }
+
+
+            }
+
+            function HideProblem(){
+                document.getElementById("problem").style.display ='none';
+                document.getElementById("container").style.display ='Block';
+                document.getElementById("numbers").style.display ='Block';	
+                document.getElementById("numbers").style.display ='flex';	
+                document.getElementById("line").style.display ='Block';
+                document.getElementById("answer").value=''; 
+
+            }
+
+            function comparison(){
+                document.getElementById("answer").value;
+                if(document.getElementById("answer").value == Answers[currentProblem][0]){
+                    alert("정답입니다.");
+                    //db 업데이트
+                    // 버튼 색 변경
+
+                    let button = document.querySelector(`button[onclick="ShowProblem(${currentProblem})"]`);
+
+                    if (button) {
+                        button.classList.replace("is-black", "is-link");
+                    }
+
+
+                    HideProblem();
+                    
+                }else{
+                    alert("틀렸습니다.");
+                }
+            }
+
+            function GoMain(){
+                window.location.href='/'
+            }
+
+            
+
+            
+        </script>
+    </body>
+
+        
+</html>
