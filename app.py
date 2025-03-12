@@ -126,6 +126,24 @@ def api_login():
         return jsonify({'result': 'fail', 'msg': '아이디/비밀번호가 일치하지 않습니다.'})
     
 
+def update_ranking_collection(all_users):
+        # ranking 컬렉션에 사용자 순위 정보 업데이트
+        ranking_updates = []
+        for user in all_users:  # 전체 사용자에 대해 순위 정보 생성
+            ranking_data = {
+                'user_id': user['id'],
+                'rank': all_users.index(user) + 1,
+                'solved_count': user['problemList'].count(True),
+                'updated_at': datetime.datetime.utcnow()
+            }
+            ranking_updates.append(ranking_data)
+        
+        # 기존 ranking 컬렉션 데이터 삭제 후 새로운 데이터 삽입
+        db.ranking.delete_many({})
+        if ranking_updates:
+            db.ranking.insert_many(ranking_updates)
+    
+
 def get_ranking_data(page, per_page=10):
     # 모든 사용자를 가져와서 메모리에서 정렬
     all_users = list(db.user.find({}, {'_id': 0, 'pw': 0}))
@@ -144,7 +162,9 @@ def get_ranking_data(page, per_page=10):
     # 각 사용자의 실제 순위 추가 (1부터 시작)
     for i, user in enumerate(users):
         user['rank'] = start_idx + i + 1
-        user['solved_count'] = user['problemList'].count(True)
+        user['solved_count'] = user['problemList'].count(True)    
+    
+    update_ranking_collection(all_users)
     
     return {
         'users': users,
@@ -183,8 +203,58 @@ def my_rank():
         
     except (jwt.ExpiredSignatureError, jwt.exceptions.DecodeError):
         return jsonify({'result': 'fail', 'msg': '로그인이 필요합니다.'})
+
+
+@app.route('/add_friend', methods=['POST'])
+def add_friend():
+    try:
+        token = request.cookies.get('mytoken')
+        payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+        user_id = payload['id']
+        friend_id = request.form['friend_id']
+        
+        # 자기 자신은 친구 추가 불가
+        if user_id == friend_id:
+            return jsonify({'result': 'fail', 'msg': '자기 자신은 친구 추가할 수 없습니다.'})
+            
+        # 이미 친구인 경우 체크
+        user = db.friends.find_one({'user_id': user_id, 'friend_id': friend_id})
+        if user is not None:
+            return jsonify({'result': 'fail', 'msg': '이미 친구입니다.'})
+            
+        # 친구 추가
+        db.friends.insert_one({
+            'user_id': user_id,
+            'friend_id': friend_id
+        })
+        return jsonify({'result': 'success'})
+    except:
+        return jsonify({'result': 'fail', 'msg': '로그인이 필요합니다.'})
     
 
+@app.route('/friend_ranking', methods=['GET'])
+def friend_ranking():
+    try:
+        token = request.cookies.get('mytoken')
+        payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+        user_id = payload['id']
+        
+        # 현재 사용자의 친구 목록 가져오기
+        friends_list = list(db.friends.find({'user_id': user_id}))
+        friends = [friend['friend_id'] for friend in friends_list]
+        
+        # 친구들의 정보 가져오기 (rank 필드 제외)
+        friend_rank = list(db.ranking.find(
+            {'user_id': {'$in': friends}}, 
+            {'_id': 0, 'pw': 0, 'updated_at': 0}
+        ))
+        
+        return jsonify({
+            'result': 'success',
+            'friends': friend_rank
+        })
+    except:
+        return jsonify({'result': 'fail', 'msg': '로그인이 필요합니다.'})
 
 @app.route('/problems')
 def problem():
