@@ -141,7 +141,6 @@
                 <img src="{{ url_for('static', filename='pika.png') }}" alt="문제 이미지" id="problemImage" reloadable="true"  />   
                 <input class="input" type="text" placeholder="정답" id="inputAnswer" />
                 <button class="button is-primary " id="problemSubmit" onclick="comparison('{{ idName }}')">제출</button>
-                <h2 class="subtitle" id="answer" style="color: white;"></h2>
                 <button class="button is-warning" onclick="HideProblem()">뒤로</button>
                 <button class="button is-danger" id="hintButton" onclick="ShowHint()">힌트 보기</button>
             </div>
@@ -206,10 +205,7 @@
         
         <script>
 
-            let Answers={
-                0:["307호", "/static/image.png"],
-                1:["라운지","/static/20250310_185308.jpg"]
-            }
+            Images=["/static/20250312_131350.jpg","/static/IMG_9105.jpg", "/static/IMG_9102.jpg","/static/IMG_9100jpg","/static/IMG_9107.jpg"]
 
             let currentProblem=0;
 
@@ -240,8 +236,7 @@
                 currentProblem=currentNumber;
                 let button = document.querySelector(`button[onclick="ShowProblem(${currentProblem})"]`);
                 
-                console.log(Answers[currentProblem][1]);
-                document.getElementById("problemImage").setAttribute('src', Answers[currentProblem][1]);
+                document.getElementById("problemImage").setAttribute('src', Images[currentProblem]);
 
                 document.getElementById("problem").style.display ='Block';	
                 document.getElementById("container").style.display ='none';	
@@ -252,14 +247,11 @@
                     document.getElementById("inputAnswer").style.display='none';
                     document.getElementById("problemSubmit").style.display='none';
                     
-                    let An= Answers[currentProblem][0];
-                    document.getElementById("answer").textContent=An;
                 }
                 else{
                     document.getElementById("inputAnswer").style.display='block';
                     document.getElementById("problemSubmit").style.display='block';
                     document.getElementById("problemSubmit").value=""
-                    document.getElementById("answer").textContent="";
                 }
 
 
@@ -271,7 +263,6 @@
                 document.getElementById("numbers").style.display ='Block';	
                 document.getElementById("numbers").style.display ='flex';	
                 document.getElementById("line").style.display ='Block';
-                document.getElementById("answer").value=''; 
                 HideHint();
 
             }
@@ -319,42 +310,44 @@
             function comparison(idName){
                 idName = idName.toString();
 
-                if(document.getElementById("inputAnswer").value == Answers[currentProblem][0]){
-                    alert("정답입니다.");
-                    //db 업데이트
-                    if(idName!="%"){
-                        $.ajax({
-                            type: "POST",
-                            url: "/api/problems",
-                            data: {id_give: idName, number_give: currentProblem},
-                            success: function(response) {
-                                if (response['result'] == "success") {
-                                    console.log("ppap"); // 문제 해결 상태 저장 성공
-                                } else {
-                                    console.log(response['msg']); // 오류 메시지 표시
-                                }
-                            },
-                            error: function() {
-                                alert("서버 요청 중 오류가 발생했습니다.");
+                user_answer=document.getElementById("inputAnswer").value;
+
+               
+                //db 업데이트
+                if(idName!="%"){
+                    $.ajax({
+                        type: "POST",
+                        url: "/api/problems",
+                        data: {id_give: idName, number_give: currentProblem, answer_give: user_answer},
+                        success: function(response) {
+                            if (response['result'] == "success"&&response['msg']=="correct") {
+                                alert("정답입니다!");
+                            }else if(response['result'] == "success"&&response['msg']=="incorrect"){ 
+                                alert("오답입니다.");
+                            }else{
+                                console.log(response['msg']); // 오류 메시지 표시
+                                
                             }
-                        });
+                        },
+                        error: function() {
+                            alert("서버 요청 중 오류가 발생했습니다.");
+                        }
+                    });
 
-                    }
-
-                    // 버튼 색 변경
-
-                    let button = document.querySelector(`button[onclick="ShowProblem(${currentProblem})"]`);
-
-                    if (button) {
-                        button.classList.replace("is-white", "is-link");
-                    }
-
-
-                    HideProblem();
-                    
-                }else{
-                    alert("틀렸습니다.");
                 }
+
+                // 버튼 색 변경
+
+                let button = document.querySelector(`button[onclick="ShowProblem(${currentProblem})"]`);
+
+                if (button) {
+                    button.classList.replace("is-white", "is-link");
+                }
+
+
+                HideProblem();
+                    
+                
             }
 
 

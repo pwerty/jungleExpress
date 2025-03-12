@@ -18,6 +18,10 @@ client = MongoClient('mongodb://localhost:27017/')
 # 실제 배포 때는 일부 수정이 필요
 db = client['realjungle']
 
+answers=["jingle","jungle","eagle","bagel","zigle"]
+
+
+
 #####################################################################################
 # 각 메모에 _id를 사용하려고 하니 해당 내용이 없으면 사용이 어려워 쓰게 된 내용
 # ObjectId 타입으로 되어있는 _id 필드는 Flask 의 jsonify 호출시 문제가 된다.
@@ -232,15 +236,23 @@ def problem():
 def solved():
     id_receive = request.form['id_give']
     number_receive = int(request.form['number_give'])
+    answer_receive=request['answer_give']
 
-    print(id_receive, number_receive)
-    user_info = db.user.find_one({"id": id_receive})
+    correct=answer_receive==answers[number_receive]
 
-    user_info["problemList"][number_receive] = True
+    if(correct==True):
+
+        user_info = db.user.find_one({"id": id_receive})
+
+        user_info["problemList"][number_receive] = True
+        
+        user_info["probSolvedCnt"] += 1
+        db.user.update_one({"id": id_receive}, {"$set": {"problemList": user_info["problemList"], "probSolvedCnt": user_info["probSolvedCnt"]}})
+        return jsonify({'result': 'success', 'msg':'correct'})
+    else:
+        return jsonify({'result': 'success', 'msg':'incorrect'})
     
-    user_info["probSolvedCnt"] += 1
-    db.user.update_one({"id": id_receive}, {"$set": {"problemList": user_info["problemList"], "probSolvedCnt": user_info["probSolvedCnt"]}})
-    return jsonify({'result': 'success', 'msg':'success'})
+    
 
 @app.route('/api/comments', methods=['GET'])
 def getComments():
