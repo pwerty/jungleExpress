@@ -155,7 +155,7 @@
                     <input class="input" type="text" placeholder="정답" id="inputAnswer" />
                     <button class="button is-primary " id="problemSubmit" onclick="comparison('{{ idName }}')">제출</button>
                     <button class="button is-warning" onclick="HideProblem()">뒤로</button>
-                    <button class="button is-danger" id="hintButton" onclick="ShowHint()">힌트 보기</button>
+                    <button class="button is-danger" id="hintButton" onclick="ShowHint(currentProblem)">힌트 보기</button>
                     
                     <button class="canvasBtn" id="stopButton" style="display: none;">Stop Confetti</button>
 	                <button class="canvasBtn" id="startButton" style="display: none;">Drop Confetti</button>	
@@ -214,7 +214,7 @@
                                 <textarea class="textarea" id="commentContext" placeholder="최대 50자까지 작성 가능하니다."></textarea>
                                 </div>
                             </div>
-                            <button class="button is-info" id="postButton" onclick="Post()" >게시하기 </button>
+                            <button class="button is-info" id="postButton" onclick="Post(currentProblem, '{{idName}}')" >게시하기 </button>
                             </div>
                         </article>
                     </div>
@@ -249,6 +249,80 @@
                     console.log("Solved Problems:", solvedProblems);  // 콘솔 확인
                 }
             };
+
+            function showComments(currentProblem)
+            {
+                $('#commentsBox').empty()
+                
+                    $.ajax({
+                        type: "GET",
+                        url: "/api/comments",
+                        data: {probNum : currentProblem},
+                        // 여기서 지금 힌트를 확인하고 싶은 문제의 번호가 전송되고, 이게 검색 조건으로 사용 됩니다.
+                        success: function(response)
+                        {
+                            if(response["result"] != 'success')
+                        {
+                            alert("댓글을 가져오던중 문제가 발생했습니다.")
+                        }
+                        else
+                        {                          
+                        let comments = response["list"]
+                        for(let i = 0; i < comments.length; i++)
+                        {
+                        // 조회 해 온 내용은 찾고자 하는 글에만 가져오게 되니 문제가 없습니다.
+                        let comment = comments[i];
+
+                        let id = comment['_id']
+                        let whoWrote = comment['userID']
+                         let contents = comment['contents']
+                         let problemNum = comment['problemNum']
+
+                            let commentHTML =
+                           `<div class="box">
+                            <article class="media">
+                            <div class="media-content">
+                            <div class="content">
+                            <p id="commentwhoPost"><strong>${whoWrote}</strong></p>
+                            <p id="commentContent" style="color:black">                             
+                              <br/>
+                                    ${contents}
+                            </p>
+                            <button type="button" onclick="delComment('${id}')" class="btn btn-danger delete-button">삭제</button>
+                          </div>                       
+                        </div>
+                      </article>
+                </div>`
+                    $("#commentsBox").append(commentHTML);
+                }
+                    
+                }
+                
+                        }
+                
+                        })
+
+
+                }
+                
+                function delComment(dbID)
+                {
+                    $.ajax({
+                    type: "POST",
+                    url: "/api/comments/delete",
+                    data: {db_id: dbID, whoRequested: '{{idName}}'},
+                    success: function (response) { 
+                        if (response["result"] == "success") {
+                            alert("삭제 완료!!")
+                            window.location.href = '/problems'
+                        }
+                        else
+                        {
+                            alert("삭제 실패..")
+                        }
+                    }
+                })
+                }
             
 
             // 문제 번호를 눌러 문제를 보입니다.
@@ -293,7 +367,7 @@
 
             }
 
-            function ShowHint(){
+            function ShowHint(currentProblem){
                 let hintSection = document.getElementById("Hint");
                 let hintButton = document.getElementById("hintButton");
 
@@ -302,6 +376,7 @@
                     hintButton.textContent  = "힌트 숨기기";  // 버튼 텍스트 변경
                     hintButton.setAttribute("onclick", "HideHint()");  // Change onclick event
                 }
+                showComments(currentProblem);
 
                 
                 if (solvedProblems[currentProblem]==false) {
@@ -327,7 +402,7 @@
                 if (hintSection.style.display == "block") {
                     hintSection.style.display = "none";  // 힌트 숨기기
                     hintButton.textContent = "힌트 보기";  // 버튼 텍스트 변경
-                    hintButton.setAttribute("onclick", "ShowHint()");  // Change onclick event
+                    hintButton.setAttribute("onclick", "ShowHint(currentProblem)");  // Change onclick event
                 }
             }
 
@@ -382,32 +457,29 @@
             }
 
 
-            function Post(){
-               
-                let comment = document.getElementById("commentContext").value;
-                console.log(comment);
+            function Post(currentProblem, idName){
+            
+            let whoTryPost = idName.toString();
+            let problemNum = currentProblem;
+            let _contents = document.getElementById("commentContext").value;
 
+            $.ajax({
+                type: "POST",
+                url: "/api/comments",
+                data: {probNum: problemNum, whoPosting : whoTryPost, contents : _contents},
+                success: function (response) {
+                    if (response['result'] == 'success') {
+                        alert("코멘트를 잘 적었습니다!")
+                        window.location.href = '/problems'
+                        // 코멘트 작성 후에는 새로고침합니다. problem 페이지로 갔을 때 적었던 페이지로 돌아오게끔 해 볼 수 있을지 고민
+                    } else {
+                        alert("와.. 어떻게 이걸 보다니!!")
 
-                let newComment = `
-                    <div class="box">
-                        <article class="media">
-                            <div class="media-content">
-                                <div class="content">
-                                    <p id="comment">
-                                        <strong>John Smith</strong> 
-                                        <br/>
-                                        ${comment}
-                                    </p>
-                                </div>
-                            </div>
-                        </article>
-                    </div>
-                `;
+                    }
+                }
+            })
+        }
 
-
-                $("#commentsBox").append(newComment);
-                document.getElementById("commentContext").value="";
-            }
 
             function reAction(){
                 $("#startButton").trigger("click");

@@ -260,17 +260,14 @@ def solved():
 def getComments():
     # 이 코드는 특정한 문제에 작성된 댓글 목록을 가져오는 것이 목적입니다.
     # probNum이라는 값을 프론트에서 가져올 예정입니다. 이 값은 프론트에서 문제 번호를 갖다 주면 됩니다.
-    probNum_receive = request.form['probNum']
+    probNum_receive = request.args.get('probNum')
 
     # 문제 번호를 통해 댓글을 찾아봅니다. comments 라는 새로운 데이터베이스를 활용합니다.
-    searchResult = db.comments.find({"problemNum": probNum_receive})
-    # ObjectID는 그대로 갖다 박는다고 텍스트가 되지 않습니다. 이거 진짜 중요함 ㅠㅠ
-    # 검색 결과에 따라 액션 할 내용을 이제 작성 해야 합니다.
-    
+    searchResult = list(db.comments.find({"problemNum": probNum_receive}))
     # searchResult는 테이블이고 각 레코드마다 _id, (user)id, contents, problemNum이 담깁니다.
     # 이건 html 상에서 makeCard 만들던 내용을 참고하면 좋곘네요
     # https://kraftonjungle.notion.site/Chapter-4-4ab9bb5d065048b596d21e8fd5e4b708
-    return jsonify({'result': 'success', 'result': searchResult})
+    return jsonify({'result': 'success', 'list': searchResult})
 
 @app.route('/api/comments', methods=['POST'])
 def postComments():
@@ -280,17 +277,20 @@ def postComments():
     id_receive = request.form['whoPosting']
     contents = request.form['contents']
     db.comments.insert_one({'userID': id_receive, 'contents': contents, 'problemNum': probNum_receive})
+    return jsonify({'result': 'success'})
 
 @app.route('/api/comments/delete', methods=['POST'])
 def delComments():
     # 이 코드는 특정한 문제에 댓글을 삭 제 하기위한 것 입니다.
     db_id_receive = request.form['db_id']
     id_receive = request.form['whoRequested']
-    delTarget = db.comments.delete_one({'_id': db_id_receive, 'userID':id_receive})
+    delTarget = db.comments.delete_one({'_id': ObjectId(db_id_receive), 'userID':id_receive})
     if delTarget.deleted_count > 0:
-        print("done")
+        return jsonify({'result': 'success'})
     else:
-        print("not done..")
+        return jsonify({'result': 'failed'})
+
+    
 
 
 if __name__ == '__main__':
