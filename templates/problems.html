@@ -25,6 +25,8 @@
                 font-style: normal;
             }
 
+           
+
             .title,p,span,body{
                 color: white;
             }
@@ -38,7 +40,9 @@
                 overflow-x: hidden; /* 가로 스크롤 방지 */
             }
 
-            
+            #comment{
+                color: black;
+            }
 
         
             .section {
@@ -106,7 +110,7 @@
 
             <br>
             <button class="button is-primary" onclick="GoMain()">메인 화면으로 </button>
-            <button class="button is-primary" onclick="GoRank()">랭킹 확인하기기 </button>
+            <button class="button is-primary" onclick="GoRank()">랭킹 확인하기 </button>
 
             <hr id="line">
 
@@ -138,7 +142,58 @@
                 <img src="{{ url_for('static', filename='pika.png') }}" alt="문제 이미지" id="problemImage" reloadable="true"  />   
                 <input class="input" type="text" placeholder="정답" id="answer" />
                 <button class="button is-primary " onclick="comparison('{{ idName }}')">제출</button>
-                <button class="button is-Warning" onclick="HideProblem()">뒤로</button>
+                <button class="button is-warning" onclick="HideProblem()">뒤로</button>
+                <button class="button is-danger" id="hintButton" onclick="ShowHint()">힌트 보기</button>
+            </div>
+
+
+            
+        </section>
+
+        <section class="section" id="Hint" style="display: none;">
+            <h1 class="title">가능하면 힌트를 보지 않고 진행해 주세요.</h1>
+            <h2 class="subtitle">
+                <span>힌트를 보시려면 아래로 스크롤 해 주세요</span>
+                </h2>
+
+
+            <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+            <br><br><br><br><br><br><br><br><br><br>
+            
+            <div class="container" id="comments" >
+                <div class="box">
+                    <article class="media">
+                      
+                      <div class="media-content">
+                        <div class="content">
+                          <p id="comment">
+                            <strong>John Smith</strong> 
+                            <br/>
+                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean
+                            efficitur sit amet massa fringilla egestas. Nullam condimentum luctus
+                            turpis.
+                          </p>
+                        </div>
+                        
+                      </div>
+                    </article>
+                  </div>
+
+            </div>
+
+            <br><br><br><br>
+
+            <div class="container" id="commentAdder"> 
+                <article class="media">
+                    <div class="media-content">
+                      <div class="field">
+                        <p class="control">
+                          <textarea class="textarea" placeholder="직접적인 정답을 기재할 경우 안내 없이 삭제 될 수 있습니다. 다른 사람들이 캠퍼스를 자유롭게 탐험할 수 있도록 지켜주세요!"></textarea>
+                        </p>
+                    </div>
+                    <a class="button is-info">게시하기 </a>
+                    </div>
+                  </article>
             </div>
         </section>
         
@@ -164,7 +219,7 @@
                     let solvedProblems = JSON.parse('{{ solvedProblems | tojson | safe }}');  
     
                     for (let i = 0; i < 20; i++) {
-                        let button = document.querySelector(`button[onclick="ShowProblem(${i})"]`);
+                        let button = document.querySelector(`.Hint`);
                         if (solvedProblems[i]==true) {
                             button.classList.replace("is-white", "is-link");
                         }
@@ -206,6 +261,23 @@
                 document.getElementById("line").style.display ='Block';
                 document.getElementById("answer").value=''; 
 
+            }
+
+            function ShowHint(){
+                let hintSection = document.getElementById("Hint");
+                let hintButton = document.getElementById("hintButton");
+
+                if (hintSection.style.display === "none") {
+                    hintSection.style.display = "block";  // 힌트 보이기
+                    hintButton.textContent  = "힌트 숨기기";  // 버튼 텍스트 변경
+                } else {
+                    hintSection.style.display = "none";  // 힌트 숨기기
+                    hintButton.textContent = "힌트 보기";  // 버튼 텍스트 변경
+                }
+            }
+
+            function HideHint(){
+                document.getElementById("Hint").style.display ='Hide';
             }
 
             function comparison(idName){
