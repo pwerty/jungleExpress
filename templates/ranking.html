@@ -16,7 +16,11 @@
          body,title,p,span,button {
                 font-family: "Do Hyeon", sans-serif;
                 font-weight: 400;
-                font-style: normal;
+                font-style: normal;                
+            }
+
+            body, p, button {                 
+                font-size: 25px;               
             }
            
 
@@ -112,8 +116,8 @@
             <h1 class="title is-1 has-text-centered">현재 랭킹은 222등 입니다!</h1> -->
             
             <div class="has-text-centered">
-                <button class="button is-primary is-light" style="margin-right: 10px" onclick="showFriendRanking()">내 주위 랭킹</button>
                 <button class="button is-link is-light" onclick="window.location.href='/ranking'">전체 랭킹</button>
+                <button class="button is-primary is-light" style="margin-right: 10px" onclick="showFriendRanking()">고정한 랭킹</button>
             </div>
             
             <div id="friendRankingTable">
@@ -123,7 +127,7 @@
                             <th>순위</th>
                             <th>아이디</th>
                             <th>해결한 문제 수</th>
-                            <th>친구 추가</th>
+                            <th>고정하기</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -131,9 +135,9 @@
                         <tr>
                             <td>{{ user.rank }}</td>
                             <td>{{ user.id }}</td>
-                            <td>{{ user.solved_count }} / 20</td>
+                            <td>{{ user.solved_count }}</td>
                             <td>
-                                <button class="button is-link is-light" onclick="addFriend('{{ user.id }}')">친구 추가</button>
+                                <button class="button is-link is-light" onclick="addFriend('{{ user.id }}')">고정하기</button>
                             </td>
                         </tr>
                         {% endfor %}
@@ -196,7 +200,7 @@
                 if (data.result === 'success') {
                     // box 업데이트
                     document.getElementById('myRankText').textContent = 
-                        `${data.nickname}님 ${data.solved_count}/20문제 해결하셨습니다!`;
+                        `${data.nickname}님 ${data.solved_count}문제 해결하셨습니다!`;
                     
                     // 랭킹 텍스트 업데이트
                     document.getElementById('currentRank').innerHTML = 
@@ -244,7 +248,7 @@
                                     <tr>
                                         <td>${friend.rank}</td>
                                         <td>${friend.user_id}</td>
-                                        <td>${friend.solved_count} / 20</td>
+                                        <td>${friend.solved_count}</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
