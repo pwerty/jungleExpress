@@ -1,5 +1,7 @@
 from flask import Flask, render_template, jsonify, request, session, redirect, url_for
-
+from flask.json.provider import JSONProvider
+from bson import ObjectId
+import json
 app = Flask(__name__)
 
 from dotenv import load_dotenv
@@ -15,6 +17,36 @@ ca = certifi.where()
 client = MongoClient('mongodb://localhost:27017/')
 # 실제 배포 때는 일부 수정이 필요
 db = client['realjungle']
+
+answers=["jingle","jungle","eagle","bagel","zigle"]
+
+
+
+#####################################################################################
+# 각 메모에 _id를 사용하려고 하니 해당 내용이 없으면 사용이 어려워 쓰게 된 내용
+# ObjectId 타입으로 되어있는 _id 필드는 Flask 의 jsonify 호출시 문제가 된다.
+# 이를 처리하기 위해서 기본 JsonEncoder 가 아닌 custom encoder 를 사용한다.
+class CustomJSONEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, ObjectId):
+            return str(o)
+        return json.JSONEncoder.default(self, o)
+
+
+class CustomJSONProvider(JSONProvider):
+    def dumps(self, obj, **kwargs):
+        return json.dumps(obj, **kwargs, cls=CustomJSONEncoder)
+
+    def loads(self, s, **kwargs):
+        return json.loads(s, **kwargs)
+
+
+# 위에 정의되 custom encoder 를 사용하게끔 설정한다.
+app.json = CustomJSONProvider(app)
+
+# 여기까지 이해 못해도 그냥 넘어갈 코드입니다.
+# #####################################################################################
+
 
 
 SECRET_KEY = os.getenv('SECRET_KEY')
@@ -115,7 +147,7 @@ def api_login():
         # exp에는 만료시간을 넣어줍니다(5초). 만료시간이 지나면, 시크릿키로 토큰을 풀 때 만료되었다고 에러가 납니다.
         payload = {
             'id': id_receive,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=100)
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=1000000)
         }
         token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
 
@@ -274,15 +306,62 @@ def problem():
 def solved():
     id_receive = request.form['id_give']
     number_receive = int(request.form['number_give'])
+    answer_receive=request.form['answer_give']
 
-    print(id_receive, number_receive)
-    user_info = db.user.find_one({"id": id_receive})
+    correct=answer_receive==answers[number_receive]
 
-    user_info["problemList"][number_receive] = True
+    if(correct==True):
+        if(id_receive!="%"):
+            user_info = db.user.find_one({"id": id_receive})
+
+            user_info["problemList"][number_receive] = True
+            
+            user_info["probSolvedCnt"] += 1
+            db.user.update_one({"id": id_receive}, {"$set": {"problemList": user_info["problemList"], "probSolvedCnt": user_info["probSolvedCnt"]}})
+            return jsonify({'result': 'success', 'msg':'correct'})
+        if(id_receive=="%"):
+            return jsonify({'result': 'success', 'msg':'correct'})
+    else:
+        return jsonify({'result': 'success', 'msg':'incorrect'})
     
-    user_info["probSolvedCnt"] += 1
-    db.user.update_one({"id": id_receive}, {"$set": {"problemList": user_info["problemList"], "probSolvedCnt": user_info["probSolvedCnt"]}})
-    return jsonify({'result': 'success', 'msg':'success'})
+
+
+@app.route('/api/comments', methods=['GET'])
+def getComments():
+    # 이 코드는 특정한 문제에 작성된 댓글 목록을 가져오는 것이 목적입니다.
+    # probNum이라는 값을 프론트에서 가져올 예정입니다. 이 값은 프론트에서 문제 번호를 갖다 주면 됩니다.
+    probNum_receive = request.args.get('probNum')
+
+    # 문제 번호를 통해 댓글을 찾아봅니다. comments 라는 새로운 데이터베이스를 활용합니다.
+    searchResult = list(db.comments.find({"problemNum": probNum_receive}))
+    # searchResult는 테이블이고 각 레코드마다 _id, (user)id, contents, problemNum이 담깁니다.
+    # 이건 html 상에서 makeCard 만들던 내용을 참고하면 좋곘네요
+    # https://kraftonjungle.notion.site/Chapter-4-4ab9bb5d065048b596d21e8fd5e4b708
+    return jsonify({'result': 'success', 'list': searchResult})
+
+@app.route('/api/comments', methods=['POST'])
+def postComments():
+    # 이 코드는 특정한 문제에 댓글을 작성하기 위한 것 입니다.
+    # probNum이라는 값을 프론트에서 가져올 예정입니다. 이 값은 프론트에서 문제 번호를 갖다 주면 됩니다.
+    probNum_receive = request.form['probNum']
+    id_receive = request.form['whoPosting']
+    contents = request.form['contents']
+    db.comments.insert_one({'userID': id_receive, 'contents': contents, 'problemNum': probNum_receive})
+    return jsonify({'result': 'success'})
+
+@app.route('/api/comments/delete', methods=['POST'])
+def delComments():
+    # 이 코드는 특정한 문제에 댓글을 삭 제 하기위한 것 입니다.
+    db_id_receive = request.form['db_id']
+    id_receive = request.form['whoRequested']
+    delTarget = db.comments.delete_one({'_id': ObjectId(db_id_receive), 'userID':id_receive})
+    if delTarget.deleted_count > 0:
+        return jsonify({'result': 'success'})
+    else:
+        return jsonify({'result': 'failed'})
+
+    
+
 
 if __name__ == '__main__':
     app.run('0.0.0.0', port=5001, debug=True)

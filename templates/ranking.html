@@ -6,19 +6,97 @@
     <title>Jungle Express : Ranking</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css">
 
-    <script>
-        function login()
-            {
-                window.location.href='/login'
+    <!-- 폰트 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
+
+
+    <style>
+         body,title,p,span,button {
+                font-family: "Do Hyeon", sans-serif;
+                font-weight: 400;
+                font-style: normal;
             }
-    </script>
+           
+
+            .title,th,p,span,body,td{
+                color: white !important; 
+            }
+
+            tr{
+                background-color:black;
+            }
+
+            body{
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                height: 100%;
+                background-color: black; /* 배경색을 검정으로 설정 */
+                overflow-x: hidden; /* 가로 스크롤 방지 */
+            }
+
+
+            .top-left-button {
+                position: absolute;
+                top: 10px;
+                left: 10px;
+            }
+
+            .box {
+                background-color: #04C67B !important; ;
+
+            }
+
+
+            /* "Previous"와 "Next" 버튼의 색상 변경 */
+            .pagination-previous, .pagination-next {
+                background-color: #04C67B;  /* 원하는 색으로 변경 */
+                color: white;  /* 글자 색 변경 */
+            }
+
+            /* 현재 페이지 번호 색상 변경 */
+            .pagination-link.is-current {
+                background-color: #04C67B;  /* 원하는 색으로 변경 */
+                color: white;
+            }
+
+            /* "Previous", "Next" 버튼 비활성화 시 색상 변경 */
+            .pagination-previous[disabled], .pagination-next[disabled] {
+                background-color: #ddd;  /* 비활성화 색상 */
+                color: #aaa;  /* 비활성화 글자 색 */
+            }
+</style>
+            
+            
+    </style>
+
+
+<script>
+        function login()
+        {
+            window.location.href='/login'
+        }
+        </script>
 </head>
 <body>
-
+    
     <div class="section">
         <div class="container">
-            <h1 class="title">정글러 랭킹</h1>
-            <button class="button is-warning is-light mb-5" onclick="window.location.href='/'">뒤로 가기</button>
+            <section class="hero is-primary is-bold is-medium">
+                <div class="hero-body">
+                    <button class="button is-warning is-light mb-5 top-left-button" onclick="window.location.href='/'" style="margin-right: 10px">뒤로 가기</button>
+                    <div class="container">
+                        <h1 class="title">
+                            정글러 랭킹
+                        </h1>
+                        
+                    </div>
+                </div>
+            </section>
+            <br>
+            
             <div class="has-text-centered mb-5 subtitle is-4" id="myRank">
                 <div class="box has-text-centered" id="myRankText"></div>
                 <h1 class="title is-1 has-text-centered" id="currentRank"></h1>
@@ -32,7 +110,7 @@
 
             <div class="box has-text-centered">정글님 14/20등 입니다!</div>
             <h1 class="title is-1 has-text-centered">현재 랭킹은 222등 입니다!</h1> -->
-
+            
             <div class="has-text-centered">
                 <button class="button is-primary is-light" style="margin-right: 10px" onclick="showFriendRanking()">내 주위 랭킹</button>
                 <button class="button is-link is-light" onclick="window.location.href='/ranking'">전체 랭킹</button>
@@ -121,8 +199,8 @@
                         `${data.nickname}님 ${data.solved_count}/20문제 해결하셨습니다!`;
                     
                     // 랭킹 텍스트 업데이트
-                    document.getElementById('currentRank').textContent = 
-                        `현재 랭킹은 ${data.rank}등 입니다!`;
+                    document.getElementById('currentRank').innerHTML = 
+                `현재 랭킹은 <span style="color: #04C67B !important; font-weight: bold;">${data.rank}</span>등 입니다!`;
                 }
             });
     }
