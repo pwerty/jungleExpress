@@ -2,18 +2,22 @@ from flask import Flask, render_template, jsonify, request, session, redirect, u
 
 app = Flask(__name__)
 
+from dotenv import load_dotenv
 from pymongo import MongoClient
+import os
 import certifi
 import jwt
 import datetime
 import hashlib
 
+load_dotenv()
 ca = certifi.where()
 client = MongoClient('mongodb://localhost:27017/')
 # 실제 배포 때는 일부 수정이 필요
 db = client['realjungle']
 
-SECRET_KEY = 'JUNGLE'
+
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 
 @app.route('/')
@@ -43,7 +47,7 @@ def home():
 @app.route('/login')
 def login():
     receivedToken = request.cookies.get('mytoken')
-    
+
     if receivedToken is None:
         return render_template('login.html')
     else:
