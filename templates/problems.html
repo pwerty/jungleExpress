@@ -24,7 +24,6 @@
                 font-weight: 400;
                 font-style: normal;
             }
-
            
 
             .title,p,span,body{
@@ -140,10 +139,11 @@
             <div class="problem" id="problem" style="display: none;">
                 
                 <img src="{{ url_for('static', filename='pika.png') }}" alt="문제 이미지" id="problemImage" reloadable="true"  />   
-                <input class="input" type="text" placeholder="정답" id="answer" />
-                <button class="button is-primary " onclick="comparison('{{ idName }}')">제출</button>
+                <input class="input" type="text" placeholder="정답" id="inputAnswer" />
+                <button class="button is-primary " id="problemSubmit" onclick="comparison('{{ idName }}')">제출</button>
+                <h2 class="subtitle" id="answer" style="color: white;"></h2>
                 <button class="button is-warning" onclick="HideProblem()">뒤로</button>
-                <button class="button is-danger" id="hintButton" onclick="HintToggle()">힌트 보기</button>
+                <button class="button is-danger" id="hintButton" onclick="ShowHint()">힌트 보기</button>
             </div>
 
 
@@ -183,41 +183,46 @@
 
             <br><br><br><br>
 
-            <div class="container" id="commentAdder"> 
-                <article class="media">
-                    <div class="media-content">
-                      <div class="field">
-                        <div class="control">
-                          <textarea class="textarea" id="commentContext" placeholder="직접적인 정답을 기재할 경우 안내 없이 삭제 될 수 있습니다. 다른 사람들이 캠퍼스를 자유롭게 탐험할 수 있도록 지켜주세요!"></textarea>
+            {% if idName == "%" %}
+                <h1 class="title">로그인 후 댓글을 작성할 수 있습니다.</h1>
+            
+            {% else %}
+
+                <div class="container" id="commentAdder"> 
+                    <article class="media">
+                        <div class="media-content">
+                        <div class="field">
+                            <div class="control">
+                            <h1 class="title" id="note">직접적인 정답을 기재할 경우 안내 없이 삭제 될 수 있습니다.<br> 다른 사람들이 캠퍼스를 자유롭게 탐험할 수 있도록 지켜주세요!</h1>
+                            <textarea class="textarea" id="commentContext" placeholder="최대 50자까지 작성 가능하니다."></textarea>
+                            </div>
                         </div>
-                    </div>
-                    <button class="button is-info" onclick="Post()" >게시하기 </button>
-                    </div>
-                  </article>
-            </div>
+                        <button class="button is-info" id="postButton" onclick="Post()" >게시하기 </button>
+                        </div>
+                    </article>
+                </div>
+            {%endif%}   
         </section>
         
         <script>
 
-            Answers={
+            let Answers={
                 0:["307호", "/static/image.png"],
                 1:["라운지","/static/20250310_185308.jpg"]
             }
 
+            let currentProblem=0;
 
-
-            currentProblem=0;
+            let id = JSON.parse('{{ idName | tojson | safe }}');
+            let solvedProblems = JSON.parse('{{ solvedProblems | tojson | safe }}');  
 
             window.onload = function buttonChange() {
-                let id = JSON.parse('{{ idName | tojson | safe }}');
 
                 if(id=="%"){
                     alert("게스트로 사용중입니다.");
                 }
                 else{
                     
-                    let solvedProblems = JSON.parse('{{ solvedProblems | tojson | safe }}');  
-    
                     for (let i = 0; i < 20; i++) {
                         let button = document.querySelector(`button[onclick="ShowProblem(${i})"]`);
                         if (solvedProblems[i]==true) {
@@ -234,20 +239,25 @@
 
                 currentProblem=currentNumber;
                 let button = document.querySelector(`button[onclick="ShowProblem(${currentProblem})"]`);
+                
+                console.log(Answers[currentProblem][1]);
+                document.getElementById("problemImage").setAttribute('src', Answers[currentProblem][1]);
 
+                document.getElementById("problem").style.display ='Block';	
+                document.getElementById("container").style.display ='none';	
+                document.getElementById("numbers").style.display ='none';
+                document.getElementById("line").style.display ='none';	
+                
                 if(button&&button.classList.contains("is-link")){
-                    alert("이미 풀었습니다.");
-                    return;
+                    document.getElementById("inputAnswer").style.display='none';
+                    document.getElementById("problemSubmit").style.display='none';
+                    
+                    let An= Answers[currentProblem][0];
+                    document.getElementById("answer").textContent=An;
                 }
                 else{
                     
-                    console.log(Answers[currentProblem][1]);
-                    document.getElementById("problemImage").setAttribute('src', Answers[currentProblem][1]);
-
-                    document.getElementById("problem").style.display ='Block';	
-                    document.getElementById("container").style.display ='none';	
-                    document.getElementById("numbers").style.display ='none';
-                    document.getElementById("line").style.display ='none';	
+                    document.getElementById("problemSubmit").value=""
                 }
 
 
@@ -260,22 +270,43 @@
                 document.getElementById("numbers").style.display ='flex';	
                 document.getElementById("line").style.display ='Block';
                 document.getElementById("answer").value=''; 
-                HintToggle();
+                HideHint();
 
             }
 
-            function HintToggle(){
+            function ShowHint(){
                 let hintSection = document.getElementById("Hint");
                 let hintButton = document.getElementById("hintButton");
 
-                if (hintSection.style.display === "none") {
+                if (hintSection.style.display == "none") {
                     hintSection.style.display = "block";  // 힌트 보이기
                     hintButton.textContent  = "힌트 숨기기";  // 버튼 텍스트 변경
-                } else {
+                    hintButton.setAttribute("onclick", "HideHint()");  // Change onclick event
+                }
+
+                
+                if (solvedProblems[currentProblem]==false) {
+                        document.getElementById("commentContext").style.display='none';
+                        document.getElementById("postButton").style.display='none';
+                        document.getElementById("note").textContent="해결한 문제가 아닌 경우 댓글을 작성할 수 없습니다.";
+                }else{
+
+                }
+                
+            }
+
+            function HideHint(){
+                let hintSection = document.getElementById("Hint");
+                let hintButton = document.getElementById("hintButton");
+
+                
+                if (hintSection.style.display == "block") {
                     hintSection.style.display = "none";  // 힌트 숨기기
                     hintButton.textContent = "힌트 보기";  // 버튼 텍스트 변경
+                    hintButton.setAttribute("onclick", "ShowHint()");  // Change onclick event
                 }
             }
+
 
 
             function comparison(idName){
