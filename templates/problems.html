@@ -18,6 +18,11 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js"></script>
 
+        <!-- 꽃가루 이벤트 -->
+        <script src="https://tistory4.daumcdn.net/tistory/3134841/skin/images/confetti_v2.js"></script>
+
+
+
         <style>
             body,title,p,span,button {
                 font-family: "Do Hyeon", sans-serif;
@@ -69,6 +74,13 @@
                 text-align: center;
             }
 
+            canvas{
+                z-index: 10;
+                pointer-events:none;
+                position: fixed;
+                top:0;
+                transform: scale(1.1);
+            }
 
             
         </style>
@@ -76,136 +88,144 @@
 
     </head>
     <body>
-        <section class="hero is-primary is-bold is-medium">
-            <div class="hero-body">
-                <div class="container">
-                    <h1 class="title">
-                        정글 탐험하기
-                    </h1>
+        <canvas id="canvas"></canvas>
+            <section class="hero is-primary is-bold is-medium">
+                <div class="hero-body">
+                    <div class="container">
+                        <h1 class="title">
+                            정글 탐험하기
+                        </h1>
+                        <h2 class="subtitle">
+                            새로운 정글 캠퍼스를 디테일하게 알아가는 방법
+                        </h2>
+                    </div>
+                </div>
+            </section>
+            <section class="section" >
+                <div class="container" id="container">
+                    
+                    {% if idName == "%" %}
+                    <h1 class="title">현재 게스트로 사용중입니다.</h1>
                     <h2 class="subtitle">
-                        새로운 정글 캠퍼스를 디테일하게 알아가는 방법
+                        <span>게스트로 사용하실 경우 해결한 <span style="color: red;">저장 및 랭킹 등록이 불가능합니다.</span> 
+                        <br>가능한 로그인 이후 사용을 권장합니다.</span>
+                    </h2>
+                    {% else %}
+                    <h1 class="title">{{ idName }} 님의 문제 현황</h1>
+                    {% endif %}
+                    <h2 class="subtitle">
+                        <span>파란색 번호는 해결한 문제, 검은색 번호는 해결하지 못한 문제입니다.
+                            <br>해결하지 못한 문제를 클릭하면 해당 문제로 이동합니다. </span>
+                            
                     </h2>
                 </div>
-            </div>
-        </section>
-        <section class="section" >
-            <div class="container" id="container">
-                
-                {% if idName == "%" %}
-                <h1 class="title">현재 게스트로 사용중입니다.</h1>
-                <h2 class="subtitle">
-                    <span>게스트로 사용하실 경우 해결한 <span style="color: red;">저장 및 랭킹 등록이 불가능합니다.</span> 
-                    <br>가능한 로그인 이후 사용을 권장합니다.</span>
-                </h2>
-                {% else %}
-                <h1 class="title">{{ idName }} 님의 문제 현황</h1>
-                {% endif %}
-                <h2 class="subtitle">
-                    <span>파란색 번호는 해결한 문제, 검은색 번호는 해결하지 못한 문제입니다.
-                        <br>해결하지 못한 문제를 클릭하면 해당 문제로 이동합니다. </span>
-                        
-                </h2>
-            </div>
 
-            <br>
-            <button class="button is-primary" onclick="GoMain()">메인 화면으로 </button>
-            <button class="button is-primary" onclick="GoRank()">랭킹 확인하기 </button>
+                <br>
+                <button class="button is-primary" onclick="GoMain()">메인 화면으로 </button>
+                <button class="button is-primary" onclick="GoRank()">랭킹 확인하기 </button>
 
-            <hr id="line">
+                <hr id="line">
 
-            <div class="numbers" id="numbers">
-                <button class="button is-white" onclick="ShowProblem(0)">1</button>
-                <button class="button is-white" onclick="ShowProblem(1)">2</button>
-                <button class="button is-white " onclick="ShowProblem(2)">3</button>
-                <button class="button is-white " onclick="ShowProblem(3)">4</button>
-                <button class="button is-white " onclick="ShowProblem(4)">5</button>
-                <button class="button is-white " onclick="ShowProblem(5)">6</button>
-                <button class="button is-white " onclick="ShowProblem(6)">7</button>
-                <button class="button is-white " onclick="ShowProblem(7)">8</button>
-                <button class="button is-white " onclick="ShowProblem(8)">9</button>
-                <button class="button is-white " onclick="ShowProblem(9)">10</button>
-                <button class="button is-white " onclick="ShowProblem(10)">11</button>
-                <button class="button is-white " onclick="ShowProblem(11)">12</button>
-                <button class="button is-white " onclick="ShowProblem(12)">13</button>
-                <button class="button is-white " onclick="ShowProblem(13)">14</button>
-                <button class="button is-white " onclick="ShowProblem(14)">15</button>
-                <button class="button is-white " onclick="ShowProblem(15)">16</button>
-                <button class="button is-white " onclick="ShowProblem(16)">17</button>
-                <button class="button is-white " onclick="ShowProblem(17)">18</button>
-                <button class="button is-white " onclick="ShowProblem(18)">19</button>
-                <button class="button is-white " onclick="ShowProblem(19)">20</button>
-            </div>
-
-            <div class="problem" id="problem" style="display: none;">
-                
-                <img src="{{ url_for('static', filename='pika.png') }}" alt="문제 이미지" id="problemImage" reloadable="true"  />   
-                <input class="input" type="text" placeholder="정답" id="inputAnswer" />
-                <button class="button is-primary " id="problemSubmit" onclick="comparison('{{ idName }}')">제출</button>
-                <button class="button is-warning" onclick="HideProblem()">뒤로</button>
-                <button class="button is-danger" id="hintButton" onclick="ShowHint()">힌트 보기</button>
-            </div>
-
-
-            
-        </section>
-
-        <section class="section" id="Hint" style="display: none;">
-            <h1 class="title">가능하면 힌트를 보지 않고 진행해 주세요.</h1>
-            <h2 class="subtitle">
-                <span>힌트를 보시려면 아래로 스크롤 해 주세요</span>
-                </h2>
-
-
-            <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-            <br><br><br><br><br><br><br><br><br><br>
-            
-            <div class="container" id="commentsBox" >
-                <div class="box">
-                    <article class="media">
-                      
-                      <div class="media-content">
-                        <div class="content">
-                          <p id="comment">
-                            <strong>John Smith</strong> 
-                            <br/>
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean
-                            efficitur sit amet massa fringilla egestas. Nullam condimentum luctus
-                            turpis.
-                          </p>
-                        </div>
-                        
-                      </div>
-                    </article>
-                  </div>
-
-            </div>
-
-            <br><br><br><br>
-
-            {% if idName == "%" %}
-                <h1 class="title">로그인 후 댓글을 작성할 수 있습니다.</h1>
-            
-            {% else %}
-
-                <div class="container" id="commentAdder"> 
-                    <article class="media">
-                        <div class="media-content">
-                        <div class="field">
-                            <div class="control">
-                            <h1 class="title" id="note">직접적인 정답을 기재할 경우 안내 없이 삭제 될 수 있습니다.<br> 다른 사람들이 캠퍼스를 자유롭게 탐험할 수 있도록 지켜주세요!</h1>
-                            <textarea class="textarea" id="commentContext" placeholder="최대 50자까지 작성 가능하니다."></textarea>
-                            </div>
-                        </div>
-                        <button class="button is-info" id="postButton" onclick="Post()" >게시하기 </button>
-                        </div>
-                    </article>
+                <div class="numbers" id="numbers">
+                    <button class="button is-white" onclick="ShowProblem(0)">1</button>
+                    <button class="button is-white" onclick="ShowProblem(1)">2</button>
+                    <button class="button is-white " onclick="ShowProblem(2)">3</button>
+                    <button class="button is-white " onclick="ShowProblem(3)">4</button>
+                    <button class="button is-white " onclick="ShowProblem(4)">5</button>
+                    <button class="button is-white " onclick="ShowProblem(5)">6</button>
+                    <button class="button is-white " onclick="ShowProblem(6)">7</button>
+                    <button class="button is-white " onclick="ShowProblem(7)">8</button>
+                    <button class="button is-white " onclick="ShowProblem(8)">9</button>
+                    <button class="button is-white " onclick="ShowProblem(9)">10</button>
+                    <button class="button is-white " onclick="ShowProblem(10)">11</button>
+                    <button class="button is-white " onclick="ShowProblem(11)">12</button>
+                    <button class="button is-white " onclick="ShowProblem(12)">13</button>
+                    <button class="button is-white " onclick="ShowProblem(13)">14</button>
+                    <button class="button is-white " onclick="ShowProblem(14)">15</button>
+                    <button class="button is-white " onclick="ShowProblem(15)">16</button>
+                    <button class="button is-white " onclick="ShowProblem(16)">17</button>
+                    <button class="button is-white " onclick="ShowProblem(17)">18</button>
+                    <button class="button is-white " onclick="ShowProblem(18)">19</button>
+                    <button class="button is-white " onclick="ShowProblem(19)">20</button>
                 </div>
-            {%endif%}   
-        </section>
+
+                <div class="problem" id="problem" style="display: none;">
+                    
+                    <img src="" alt="문제 이미지" id="problemImage" reloadable="true"  />   
+                    <input class="input" type="text" placeholder="정답" id="inputAnswer" />
+                    <button class="button is-primary " id="problemSubmit" onclick="comparison('{{ idName }}')">제출</button>
+                    <button class="button is-warning" onclick="HideProblem()">뒤로</button>
+                    <button class="button is-danger" id="hintButton" onclick="ShowHint()">힌트 보기</button>
+                    
+                    <button class="canvasBtn" id="stopButton" style="display: none;">Stop Confetti</button>
+	                <button class="canvasBtn" id="startButton" style="display: none;">Drop Confetti</button>	
+
+                
+                </div>
+
+
+                
+            </section>
+
+            <section class="section" id="Hint" style="display: none;">
+                <h1 class="title">가능하면 힌트를 보지 않고 진행해 주세요.</h1>
+                <h2 class="subtitle">
+                    <span>힌트를 보시려면 아래로 스크롤 해 주세요</span>
+                    </h2>
+
+
+                <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+                <br><br><br><br><br><br><br><br><br><br>
+                
+                <div class="container" id="commentsBox" >
+                    <div class="box">
+                        <article class="media">
+                        
+                        <div class="media-content">
+                            <div class="content">
+                            <p id="comment">
+                                <strong>John Smith</strong> 
+                                <br/>
+                                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean
+                                efficitur sit amet massa fringilla egestas. Nullam condimentum luctus
+                                turpis.
+                            </p>
+                            </div>
+                            
+                        </div>
+                        </article>
+                    </div>
+
+                </div>
+
+                <br><br><br><br>
+
+                {% if idName == "%" %}
+                    <h1 class="title">로그인 후 댓글을 작성할 수 있습니다.</h1>
+                
+                {% else %}
+
+                    <div class="container" id="commentAdder"> 
+                        <article class="media">
+                            <div class="media-content">
+                            <div class="field">
+                                <div class="control">
+                                <h1 class="title" id="note">직접적인 정답을 기재할 경우 안내 없이 삭제 될 수 있습니다.<br> 다른 사람들이 캠퍼스를 자유롭게 탐험할 수 있도록 지켜주세요!</h1>
+                                <textarea class="textarea" id="commentContext" placeholder="최대 50자까지 작성 가능하니다."></textarea>
+                                </div>
+                            </div>
+                            <button class="button is-info" id="postButton" onclick="Post()" >게시하기 </button>
+                            </div>
+                        </article>
+                    </div>
+                {%endif%}   
+            </section>
         
         <script>
 
-            Images=["/static/20250312_131350.jpg","/static/IMG_9105.jpg", "/static/IMG_9102.jpg","/static/IMG_9100jpg","/static/IMG_9107.jpg"]
+            Images=["/static/20250312_131350.jpg","/static/IMG_9105.jpg", "/static/IMG_9102.jpg","/static/IMG_9100.jpg","/static/IMG_9107.jpg",
+
+            ]
 
             let currentProblem=0;
 
@@ -231,6 +251,7 @@
             };
             
 
+            // 문제 번호를 눌러 문제를 보입니다.
             function ShowProblem(currentNumber){
 
                 currentProblem=currentNumber;
@@ -238,17 +259,22 @@
                 
                 document.getElementById("problemImage").setAttribute('src', Images[currentProblem]);
 
+                document.getElementById("inputAnswer").value="";
                 document.getElementById("problem").style.display ='Block';	
                 document.getElementById("container").style.display ='none';	
                 document.getElementById("numbers").style.display ='none';
                 document.getElementById("line").style.display ='none';	
                 
+
+                // 이미 해결한 문제인 경우
+                // 답을 입력하는 부분을 숨깁니다.
                 if(button&&button.classList.contains("is-link")){
                     document.getElementById("inputAnswer").style.display='none';
                     document.getElementById("problemSubmit").style.display='none';
                     
                 }
                 else{
+                    // 아직 해결하지 못한 문제인 경우 답 입력 부분을 보입니다.
                     document.getElementById("inputAnswer").style.display='block';
                     document.getElementById("problemSubmit").style.display='block';
                     document.getElementById("problemSubmit").value=""
@@ -314,38 +340,43 @@
 
                
                 //db 업데이트
-                if(idName!="%"){
-                    $.ajax({
-                        type: "POST",
-                        url: "/api/problems",
-                        data: {id_give: idName, number_give: currentProblem, answer_give: user_answer},
-                        success: function(response) {
-                            if (response['result'] == "success"&&response['msg']=="correct") {
-                                alert("정답입니다!");
-                            }else if(response['result'] == "success"&&response['msg']=="incorrect"){ 
-                                alert("오답입니다.");
-                            }else{
-                                console.log(response['msg']); // 오류 메시지 표시
-                                
+                
+                $.ajax({
+                    type: "POST",
+                    url: "/api/problems",
+                    data: {id_give: idName, number_give: currentProblem, answer_give: user_answer},
+                    success: function(response) {
+                        if (response['result'] == "success"&&response['msg']=="correct") {
+
+                            
+                            reAction();
+                            alert("정답입니다!");
+                            // 버튼 색 변경
+            
+                            let button = document.querySelector(`button[onclick="ShowProblem(${currentProblem})"]`);
+            
+                            if (button) {
+                                button.classList.replace("is-white", "is-link");
                             }
-                        },
-                        error: function() {
-                            alert("서버 요청 중 오류가 발생했습니다.");
+            
+            
+                            HideProblem();
+
+                        }else if(response['result'] == "success"&&response['msg']=="incorrect"){ 
+                            alert("오답입니다.");
+
+                        }else{
+                            console.log(response['msg']); // 오류 메시지 표시
+                            
                         }
-                    });
+                    },
+                    error: function() {
+                        alert("서버 요청 중 오류가 발생했습니다.");
+                    }
+                });
 
-                }
+                
 
-                // 버튼 색 변경
-
-                let button = document.querySelector(`button[onclick="ShowProblem(${currentProblem})"]`);
-
-                if (button) {
-                    button.classList.replace("is-white", "is-link");
-                }
-
-
-                HideProblem();
                     
                 
             }
@@ -378,6 +409,15 @@
                 document.getElementById("commentContext").value="";
             }
 
+            function reAction(){
+                $("#startButton").trigger("click");
+                setTimeout(function(){
+                    $("#stopButton").trigger("click");
+                }, 3000);
+
+            }
+            
+
 
 
             function GoMain(){
@@ -390,6 +430,10 @@
 
             
         </script>
+
+
+
+    </canvas>
     </body>
 
         

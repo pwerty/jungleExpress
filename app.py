@@ -236,23 +236,25 @@ def problem():
 def solved():
     id_receive = request.form['id_give']
     number_receive = int(request.form['number_give'])
-    answer_receive=request['answer_give']
+    answer_receive=request.form['answer_give']
 
     correct=answer_receive==answers[number_receive]
 
     if(correct==True):
+        if(id_receive!="%"):
+            user_info = db.user.find_one({"id": id_receive})
 
-        user_info = db.user.find_one({"id": id_receive})
-
-        user_info["problemList"][number_receive] = True
-        
-        user_info["probSolvedCnt"] += 1
-        db.user.update_one({"id": id_receive}, {"$set": {"problemList": user_info["problemList"], "probSolvedCnt": user_info["probSolvedCnt"]}})
-        return jsonify({'result': 'success', 'msg':'correct'})
+            user_info["problemList"][number_receive] = True
+            
+            user_info["probSolvedCnt"] += 1
+            db.user.update_one({"id": id_receive}, {"$set": {"problemList": user_info["problemList"], "probSolvedCnt": user_info["probSolvedCnt"]}})
+            return jsonify({'result': 'success', 'msg':'correct'})
+        if(id_receive=="%"):
+            return jsonify({'result': 'success', 'msg':'correct'})
     else:
         return jsonify({'result': 'success', 'msg':'incorrect'})
     
-    
+
 
 @app.route('/api/comments', methods=['GET'])
 def getComments():
