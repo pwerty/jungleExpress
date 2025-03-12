@@ -143,7 +143,7 @@
                 <input class="input" type="text" placeholder="정답" id="answer" />
                 <button class="button is-primary " onclick="comparison('{{ idName }}')">제출</button>
                 <button class="button is-warning" onclick="HideProblem()">뒤로</button>
-                <button class="button is-danger" id="hintButton" onclick="ShowHint()">힌트 보기</button>
+                <button class="button is-danger" id="hintButton" onclick="HintToggle()">힌트 보기</button>
             </div>
 
 
@@ -160,7 +160,7 @@
             <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
             <br><br><br><br><br><br><br><br><br><br>
             
-            <div class="container" id="comments" >
+            <div class="container" id="commentsBox" >
                 <div class="box">
                     <article class="media">
                       
@@ -187,11 +187,11 @@
                 <article class="media">
                     <div class="media-content">
                       <div class="field">
-                        <p class="control">
-                          <textarea class="textarea" placeholder="직접적인 정답을 기재할 경우 안내 없이 삭제 될 수 있습니다. 다른 사람들이 캠퍼스를 자유롭게 탐험할 수 있도록 지켜주세요!"></textarea>
-                        </p>
+                        <div class="control">
+                          <textarea class="textarea" id="commentContext" placeholder="직접적인 정답을 기재할 경우 안내 없이 삭제 될 수 있습니다. 다른 사람들이 캠퍼스를 자유롭게 탐험할 수 있도록 지켜주세요!"></textarea>
+                        </div>
                     </div>
-                    <a class="button is-info">게시하기 </a>
+                    <button class="button is-info" onclick="Post()" >게시하기 </button>
                     </div>
                   </article>
             </div>
@@ -219,7 +219,7 @@
                     let solvedProblems = JSON.parse('{{ solvedProblems | tojson | safe }}');  
     
                     for (let i = 0; i < 20; i++) {
-                        let button = document.querySelector(`.Hint`);
+                        let button = document.querySelector(`button[onclick="ShowProblem(${i})"]`);
                         if (solvedProblems[i]==true) {
                             button.classList.replace("is-white", "is-link");
                         }
@@ -260,10 +260,11 @@
                 document.getElementById("numbers").style.display ='flex';	
                 document.getElementById("line").style.display ='Block';
                 document.getElementById("answer").value=''; 
+                HintToggle();
 
             }
 
-            function ShowHint(){
+            function HintToggle(){
                 let hintSection = document.getElementById("Hint");
                 let hintButton = document.getElementById("hintButton");
 
@@ -276,9 +277,6 @@
                 }
             }
 
-            function HideHint(){
-                document.getElementById("Hint").style.display ='Hide';
-            }
 
             function comparison(idName){
                 idName = idName.toString();
@@ -320,6 +318,36 @@
                     alert("틀렸습니다.");
                 }
             }
+
+
+            function Post(){
+               
+                let comment = document.getElementById("commentContext").value;
+                console.log(comment);
+
+
+                let newComment = `
+                    <div class="box">
+                        <article class="media">
+                            <div class="media-content">
+                                <div class="content">
+                                    <p id="comment">
+                                        <strong>John Smith</strong> 
+                                        <br/>
+                                        ${comment}
+                                    </p>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                `;
+
+
+                $("#commentsBox").append(newComment);
+                document.getElementById("commentContext").value="";
+            }
+
+
 
             function GoMain(){
                 window.location.href='/'
