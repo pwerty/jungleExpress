@@ -14,7 +14,9 @@ import hashlib
 
 load_dotenv()
 ca = certifi.where()
-client = MongoClient('mongodb://localhost:27017/')
+#client = MongoClient('mongodb://localhost:27017/')
+client = MongoClient('mongodb://test:test@localhost', 27017)
+
 # 실제 배포 때는 일부 수정이 필요
 db = client['realjungle']
 
@@ -294,4 +296,4 @@ def delComments():
 
 
 if __name__ == '__main__':
-    app.run('0.0.0.0', port=5001, debug=True)
+    app.run('0.0.0.0', port=5000, debug=True)
