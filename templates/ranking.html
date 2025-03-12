@@ -16,7 +16,11 @@
          body,title,p,span,button {
                 font-family: "Do Hyeon", sans-serif;
                 font-weight: 400;
-                font-style: normal;
+                font-style: normal;                
+            }
+
+            body, p, button {                 
+                font-size: 25px;               
             }
            
 
@@ -105,40 +109,44 @@
             {% if idName == "%" %}
             <a href="javascript:login()">로그인하고 본인의 정글 탐험도를 다른 구성원들과 경쟁하세요.</a>
             {% else %}
-            <a>로그인이 완료되어있는 상태입니다.</a>
+                <a>로그인이 완료되어있는 상태입니다.</a>
             {% endif %}
-            
+
             <div class="box has-text-centered">정글님 14/20등 입니다!</div>
             <h1 class="title is-1 has-text-centered">현재 랭킹은 222등 입니다!</h1> -->
             
             <div class="has-text-centered">
-                <button class="button is-primary is-light" style="margin-right: 10px">내 주위 랭킹</button>
                 <button class="button is-link is-light" onclick="window.location.href='/ranking'">전체 랭킹</button>
+                <button class="button is-primary is-light" style="margin-right: 10px" onclick="showFriendRanking()">고정한 랭킹</button>
             </div>
-
-            <br><br>
-
-            <table class="table is-fullwidth">
-                <thead>
-                    <tr>
-                        <th>순위</th>
-                        <th>아이디</th>
-                        <th>해결한 문제 수</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for user in users %}
-                    <tr>
-                        <td>{{ user.rank }}</td>
-                        <td>{{ user.id }}</td>
-                        <td>{{ user.solved_count }} / 20</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            
+            <div id="friendRankingTable">
+                <table class="table is-fullwidth">
+                    <thead>
+                        <tr>
+                            <th>순위</th>
+                            <th>아이디</th>
+                            <th>해결한 문제 수</th>
+                            <th>고정하기</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.rank }}</td>
+                            <td>{{ user.id }}</td>
+                            <td>{{ user.solved_count }}</td>
+                            <td>
+                                <button class="button is-link is-light" onclick="addFriend('{{ user.id }}')">고정하기</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>            
 
             <!-- pagination -->     
-            <nav class="pagination is-rounded" role="navigation" aria-label="pagination">
+            <nav class="pagination is-rounded" role="navigation" aria-label="pagination" id="pagination">
                 {% if current_page > 1 %}
                     <a href="/ranking?page={{ current_page - 1 }}" class="pagination-previous">Previous</a>
                 {% else %}
@@ -192,7 +200,7 @@
                 if (data.result === 'success') {
                     // box 업데이트
                     document.getElementById('myRankText').textContent = 
-                        `${data.nickname}님 ${data.solved_count}/20문제 해결하셨습니다!`;
+                        `${data.nickname}님 ${data.solved_count}문제 해결하셨습니다!`;
                     
                     // 랭킹 텍스트 업데이트
                     document.getElementById('currentRank').innerHTML = 
@@ -201,5 +209,57 @@
             });
     }
     getMyRank();
+
+    function addFriend(friendId) {
+        fetch('/add_friend', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },            
+            body: `friend_id=${friendId}`
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.result === 'success') {                    
+                    alert('친구 추가 완료!');
+                } else {
+                    alert(data.msg);
+                }
+            });
+    }
+
+    function showFriendRanking() {
+        fetch('/friend_ranking')
+            .then(res => res.json())
+            .then(data => {
+                if (data.result === 'success') {                    
+                    const rankingDiv = document.getElementById('friendRankingTable');
+                    rankingDiv.innerHTML = `
+                        <table class="table is-fullwidth">
+                            <thead>
+                                <tr>
+                                    <th>순위</th>
+                                    <th>아이디</th>
+                                    <th>해결한 문제 수</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.friends.map(friend => `
+                                    <tr>
+                                        <td>${friend.rank}</td>
+                                        <td>${friend.user_id}</td>
+                                        <td>${friend.solved_count}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                    document.querySelector('.pagination').style.display = 'none';
+                } else {
+                    alert(data.msg);
+                }
+            });
+}
+    
 </script>
 </html> 
